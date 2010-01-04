@@ -1,0 +1,1 @@
+jar cvf tmp/snapshot/3DFu.jar -C bin .
