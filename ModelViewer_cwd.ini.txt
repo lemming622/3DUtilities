@@ -1,0 +1,13 @@
+LoadPath=data/Models
+ExportPath=data/Exports
+MetaDataPath=data/MetaData
+Adjust=true
+Descriptor=edu.ncsa.model.descriptors.MeshDescriptor_LightField
+RebuildDescriptors=true
+DefaultModel=logos/ncsa_horizontal_3D.dae
+Ortho=true
+Axis=true
+Points=false
+Transparent=false
+Shaded=true
+AutoRefresh=false
