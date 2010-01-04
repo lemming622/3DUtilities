@@ -1,5 +1,5 @@
 package edu.ncsa.model;
-import edu.ncsa.model.Utility.*;
+import edu.ncsa.utility.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.Color;

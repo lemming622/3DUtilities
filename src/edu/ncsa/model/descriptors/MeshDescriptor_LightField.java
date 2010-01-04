@@ -1,7 +1,8 @@
 package edu.ncsa.model.descriptors;
 import edu.ncsa.model.*;
 import edu.ncsa.model.MeshAuxiliary.*;
-import edu.ncsa.model.ImageUtility.*;
+import edu.ncsa.image.*;
+import edu.ncsa.utility.*;
 import java.util.*;
 
 /**

@@ -2,7 +2,7 @@ package edu.ncsa.model;
 import edu.ncsa.model.MeshAuxiliary.*;
 import edu.ncsa.model.MeshAuxiliary.Point;
 import edu.ncsa.model.MeshAuxiliary.Color;
-import edu.ncsa.model.matrix.*;
+import edu.ncsa.matrix.*;
 import javax.swing.*;
 import javax.vecmath.*;
 import java.awt.*;

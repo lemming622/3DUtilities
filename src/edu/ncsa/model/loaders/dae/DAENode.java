@@ -1,7 +1,6 @@
 package edu.ncsa.model.loaders.dae;
-import edu.ncsa.model.matrix.MatrixUtility;
-import edu.ncsa.model.matrix.GMatrixUtility;
-import edu.ncsa.model.Utility.*;
+import edu.ncsa.matrix.*;
+import edu.ncsa.utility.*;
 import java.util.*;
 import org.jdom.*;
 

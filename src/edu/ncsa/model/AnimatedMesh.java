@@ -1,5 +1,5 @@
 package edu.ncsa.model;
-import edu.ncsa.model.Utility.ProgressEvent;
+import edu.ncsa.model.MeshLoader.ProgressEvent;
 import edu.ncsa.model.loaders.*;
 import java.util.*;
 

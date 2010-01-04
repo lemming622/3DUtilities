@@ -1,5 +1,5 @@
 package edu.ncsa.model;
-import edu.ncsa.model.matrix.MatrixUtility;
+import edu.ncsa.matrix.*;
 import java.io.*;
 import java.util.*;
 

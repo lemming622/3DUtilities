@@ -1,6 +1,7 @@
 package edu.ncsa.model.loaders;
 import edu.ncsa.model.*;
 import edu.ncsa.model.MeshAuxiliary.*;
+import edu.ncsa.utility.*;
 import edu.ncsa.model.loaders.stp.*;
 import java.util.*;
 
@@ -77,7 +78,7 @@ public class MeshLoader_STP extends MeshLoader
       }
           	
       if(true){    //Load faces
-      	Utility.Pair<Vector<Point>,Vector<Face>> surface = null;
+      	Pair<Vector<Point>,Vector<Face>> surface = null;
         
         for(int e=0; e<sf.data.size(); e++){
           if(sf.data.get(e) != null){
@@ -85,7 +86,7 @@ public class MeshLoader_STP extends MeshLoader
             	if(sf.data.get(e).name.equals("ADVANCED_FACE")){
             		surface = STEPUtility.getSurface(sf, e);
             	}else if(sf.data.get(e).name.equals("POLY_LOOP")){
-            		surface = new Utility.Pair<Vector<Point>,Vector<Face>>();
+            		surface = new Pair<Vector<Point>,Vector<Face>>();
             		surface.first = STEPUtility.getPolyLine(sf, e);
             		surface.second = new Polygon(surface.first).getConvexPolygonFaces();
             	}

@@ -1,5 +1,5 @@
 package edu.ncsa.model;
-import edu.ncsa.model.matrix.*;
+import edu.ncsa.matrix.*;
 import java.util.*;
 
 /**
@@ -82,7 +82,7 @@ public class KMeans
    *  @param E the extremes in each dimension of each cluster
    *  @param N the number of points in each cluster
    */
-  public static void getInfo(Vector<Vector<double[]>> CX, Vector<double[]> C, Vector<Vector<double[]>> E, Vector<Integer> N)
+  public static void getData(Vector<Vector<double[]>> CX, Vector<double[]> C, Vector<Vector<double[]>> E, Vector<Integer> N)
   {
     int K = CX.size();
     int d = 0;

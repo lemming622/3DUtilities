@@ -1,9 +1,10 @@
 package edu.ncsa.model.loaders;
 import edu.ncsa.model.*;
 import edu.ncsa.model.loaders.vh.*;
-import edu.ncsa.model.ImageUtility.Pixel;
 import edu.ncsa.model.MeshAuxiliary.*;
-import edu.ncsa.model.matrix.*;
+import edu.ncsa.image.*;
+import edu.ncsa.matrix.*;
+import edu.ncsa.utility.*;
 import java.awt.image.*;
 import javax.imageio.*;
 import java.io.*;
@@ -87,7 +88,7 @@ public class MeshLoader_VH extends MeshLoader
     //Create cone faces for each camera
     Vector<Vector<Point[]>> cone_faces = new Vector<Vector<Point[]>>();
     Vector<Vector<Vector<Point>>> cone_rays = new Vector<Vector<Vector<Point>>>();
-    Utility.Pair<Point,Point> r;
+    Pair<Point,Point> r;
     Point v0, v1;
     double scl = 2500;    //This should be set automatically!
     int at;

@@ -1,9 +1,10 @@
 package edu.ncsa.model;
 import edu.ncsa.model.MeshAuxiliary.*;
+import edu.ncsa.model.MeshLoader.ProgressEvent;
 import edu.ncsa.model.loaders.*;
-import edu.ncsa.model.matrix.MatrixUtility;
-import edu.ncsa.model.matrix.JAMAMatrixUtility;
-import edu.ncsa.model.Utility.*;
+import edu.ncsa.image.*;
+import edu.ncsa.matrix.*;
+import edu.ncsa.utility.*;
 import java.util.*;
 import javax.media.opengl.*;
 

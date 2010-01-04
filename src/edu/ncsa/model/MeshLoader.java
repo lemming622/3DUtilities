@@ -1,5 +1,4 @@
 package edu.ncsa.model;
-import edu.ncsa.model.Utility.ProgressEvent;
 
 /**
  * An abstract class which provides an interface for file format loaders into the mesh class.
@@ -7,6 +6,14 @@ import edu.ncsa.model.Utility.ProgressEvent;
  */
 public abstract class MeshLoader
 {
+  /**
+   * An interface to allow for progress update callbacks.
+   */
+  public interface ProgressEvent
+  {
+  	public void progressEvent(double value, double total);
+  }
+  
 	protected ProgressEvent progressCallBack = null;
 	
 	/**

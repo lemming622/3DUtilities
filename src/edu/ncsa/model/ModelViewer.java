@@ -4,8 +4,10 @@ import edu.ncsa.model.MeshAuxiliary.Camera;
 import edu.ncsa.model.MeshAuxiliary.RigidTransformation;
 import edu.ncsa.model.MeshAuxiliary.Point;
 import edu.ncsa.model.MeshAuxiliary.Material;
-import edu.ncsa.model.matrix.*;
-import edu.ncsa.model.Utility.*;
+import edu.ncsa.image.*;
+import edu.ncsa.matrix.*;
+import edu.ncsa.utility.*;
+import edu.ncsa.model.MeshLoader.ProgressEvent;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -1364,7 +1366,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     }
     
     if(SAVE_DEPTH){
-    	Utility.Pair<int[],double[]> pair = mesh.getDepthMap(modelview, width, height);
+    	Pair<int[],double[]> pair = mesh.getDepthMap(modelview, width, height);
     	double[][] img = MatrixUtility.to2D(height, width, pair.second);
     	
     	ImageUtility.save_PGM(output_name, img);
