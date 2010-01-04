@@ -1,9 +1,8 @@
 package edu.ncsa.model.loaders.vh;
-import edu.ncsa.model.*;
-import edu.ncsa.model.ImageUtility.*;
 import edu.ncsa.model.MeshAuxiliary.*;
-import edu.ncsa.model.Utility.*;
-import edu.ncsa.model.matrix.*;
+import edu.ncsa.image.*;
+import edu.ncsa.matrix.*;
+import edu.ncsa.utility.*;
 import java.util.*;
 
 /**

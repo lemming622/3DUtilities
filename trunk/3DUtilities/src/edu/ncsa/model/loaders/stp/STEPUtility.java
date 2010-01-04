@@ -1,9 +1,8 @@
 package edu.ncsa.model.loaders.stp;
 import edu.ncsa.model.*;
 import edu.ncsa.model.MeshAuxiliary.*;
-import edu.ncsa.model.Utility.*;
-import edu.ncsa.model.matrix.GMatrixUtility;
-import edu.ncsa.model.matrix.MatrixUtility;
+import edu.ncsa.utility.*;
+import edu.ncsa.matrix.*;
 import java.util.*;
 
 public class STEPUtility

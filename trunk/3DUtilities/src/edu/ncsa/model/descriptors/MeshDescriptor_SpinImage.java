@@ -1,7 +1,9 @@
 package edu.ncsa.model.descriptors;
 import edu.ncsa.model.*;
 import edu.ncsa.model.MeshAuxiliary.*;
-import edu.ncsa.model.matrix.*;
+import edu.ncsa.image.*;
+import edu.ncsa.matrix.*;
+import edu.ncsa.utility.*;
 import java.util.*;
 
 /**
@@ -104,7 +106,7 @@ public class MeshDescriptor_SpinImage extends MeshDescriptor
     
     //Cluster spin images
     Vector<Vector<double[]>> CX = KMeans.cluster(1, spin_images, 5);
-    KMeans.getInfo(CX, descriptor, null, null);
+    KMeans.getData(CX, descriptor, null, null);
     
     if(false){	//View results
 	    ImageViewer.show(spin_images, bins, bins, "Spin Images [" + mesh.getMetaData("Name") + "]");

@@ -1,7 +1,7 @@
 package edu.ncsa.model;
-import edu.ncsa.model.Utility.*;
-import edu.ncsa.model.ImageUtility.*;
-import edu.ncsa.model.matrix.*;
+import edu.ncsa.utility.*;
+import edu.ncsa.image.*;
+import edu.ncsa.matrix.*;
 import java.awt.image.*;
 import java.io.*;
 import java.nio.*;
@@ -2989,9 +2989,9 @@ public class MeshAuxiliary
      *  @param y the y coordinate in the image
      *  @return the ray through this point in the world coordinate frame
      */
-    public Utility.Pair<Point,Point> getRay(int x, int y)
+    public Pair<Point,Point> getRay(int x, int y)
     {
-      Utility.Pair<Point,Point> r = new Utility.Pair<Point,Point>();
+      Pair<Point,Point> r = new Pair<Point,Point>();
       Point p = new Point(0, 0, 0);
       Point q = new Point(((double)x)+0.5, ((double)y)+0.5, 0.0);
       Point d = new Point();
@@ -3013,9 +3013,9 @@ public class MeshAuxiliary
      *  @param y the y coordinate in the image
      *  @return the ray through this point in the world coordinate frame
      */
-    public Utility.Pair<Point,Point> getRay(double x, double y)
+    public Pair<Point,Point> getRay(double x, double y)
     {
-      Utility.Pair<Point,Point> r = new Utility.Pair<Point,Point>();
+      Pair<Point,Point> r = new Pair<Point,Point>();
       Point p = new Point(0, 0, 0);
       Point q = new Point(x, y, 0.0);
       Point d = new Point();
