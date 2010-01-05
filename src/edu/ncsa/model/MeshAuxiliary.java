@@ -5090,7 +5090,7 @@ public class MeshAuxiliary
 	    //Display 3D results
 	    ModelViewer modelviewer = new ModelViewer("ModelViewer.ini", -1, -1, false, false);
 	    modelviewer.setMesh(mesh);
-	    modelviewer.setPoints(true);
+	    modelviewer.enablePoints(true);
 
 	    JFrame frame = new JFrame("Model Viewer");
 	    frame.setSize(modelviewer.width+9, modelviewer.height+35);

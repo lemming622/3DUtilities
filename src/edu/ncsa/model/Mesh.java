@@ -38,8 +38,8 @@ public class Mesh
   private Vector<Double> stripes = new Vector<Double>();
   private boolean DRAWMETAL_INITIALIZED = false;
   
-  private Point center = new Point();
-  private double radius;
+  protected Point center = new Point();
+  protected double radius;
   private Vector<Point> PC = null;  
   
   private Class Descriptor = null;
@@ -1563,14 +1563,16 @@ public class Mesh
   /**
    * Set the mesh data.
    * @param v vertices
-   * @param c vertex colors
+   * @param c vertex colors (can be null)
+   * @param f faces (can be null)
    * @param INITIALIZE true if the mesh should be initialized
    */
-  public void setData(Vector<Point> v, Vector<Color> c, boolean INITIALIZE)
+  public void setData(Vector<Point> v, Vector<Color> c, Vector<Face> f, boolean INITIALIZE)
   {
   	clear();
   	vertices = v;
-  	vertex_colors = c;
+  	if(c != null) vertex_colors = c;
+  	if(f != null) faces = f;
   	if(INITIALIZE) initialize();
   }
   
@@ -2026,7 +2028,8 @@ public class Mesh
     gl.glBegin(GL.GL_POINTS);
     
     if(vertex_colors.size() != vertices.size()){
-      gl.glColor3f(0.0f, 0.0f, 0.0f);    
+      gl.glColor3f(0.0f, 0.0f, 0.0f);
+      
       for(int i=0; i<vertices.size(); i++){
         gl.glVertex3f((float)vertices.get(i).x, (float)vertices.get(i).y, (float)vertices.get(i).z);
       }

@@ -1,4 +1,5 @@
 package edu.ncsa.model;
+import edu.ncsa.model.MeshAuxiliary.Point;
 import edu.ncsa.model.MeshLoader.ProgressEvent;
 import edu.ncsa.model.loaders.*;
 import java.util.*;
@@ -7,6 +8,8 @@ public class AnimatedMesh extends Mesh
 {
 	private static Vector<AnimatedMeshLoader> animation_loaders = null;
 	private AnimatedMeshLoader animation_loader = null;
+	private Point animation_offset = new Point(0, 0, 0);
+	private double animation_scale = 1;
 	
 	public AnimatedMesh() 
 	{
@@ -48,6 +51,8 @@ public class AnimatedMesh extends Mesh
   {
   	super.transfer(m);
   	animation_loader = m.animation_loader; m.animation_loader = null;
+    animation_offset = m.animation_offset; m.animation_offset = new Point(0, 0, 0);
+    animation_scale = m.animation_scale; m.animation_scale = 1;
   }
   
 	/**
@@ -68,6 +73,7 @@ public class AnimatedMesh extends Mesh
     			
     			if(mesh != null){
   	  			transfer(mesh);
+  	  			while(vertices.isEmpty()) setMesh();
   	  			//print();
   	  			return true;
     			}
@@ -86,6 +92,20 @@ public class AnimatedMesh extends Mesh
   public boolean load(String filename)
   {
   	return load(filename, null);
+  }
+  
+	/**
+   * Set the center of mass of the vertices to the origin.
+   * @param new_radius the desired radial extreme of the vertices from the origin
+   */
+  public void center(float new_radius)
+  {
+  	if(animation_loader != null){
+	  	animation_offset = center;
+	    animation_scale = new_radius/radius;
+  	}else{
+  		super.center(new_radius);
+  	}
   }
   
   /**
@@ -108,6 +128,7 @@ public class AnimatedMesh extends Mesh
   {
   	if(animation_loader != null){
   		super.transfer(animation_loader.getMesh());
+			vertices = (Point.transform(vertices, animation_offset, animation_scale, null));
   	}
   }
   

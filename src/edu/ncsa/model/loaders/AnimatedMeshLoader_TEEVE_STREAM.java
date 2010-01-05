@@ -77,14 +77,20 @@ public class AnimatedMeshLoader_TEEVE_STREAM extends AnimatedMeshLoader
   	Mesh mesh = new Mesh();
   	Vector<Point> vertices = new Vector<Point>(initial_capacity);
   	Vector<Color> colors = new Vector<Color>(initial_capacity);
+  	Vector<Face> faces = new Vector<Face>(initial_capacity);
   	byte[] buffer;
   	
   	buffer = connection.getBuffer();
-  	if(buffer != null) Packetizer.depacketize(vertices, colors, buffer, buffer.length);
+  	
+  	if(buffer != null){
+  		//Packetizer.depacketize(vertices, colors, buffer, buffer.length);
+  		Packetizer.depacketize(vertices, colors, faces, buffer, buffer.length);
+  	}
   	
     //Transfer loaded data to a mesh and initialize auxiliary data structures
     mesh.setVertices(vertices);
     mesh.setVertexColors(colors);
+    mesh.setFaces(faces);
     mesh.initialize();
   	
   	return mesh;
@@ -102,9 +108,10 @@ public class AnimatedMeshLoader_TEEVE_STREAM extends AnimatedMeshLoader
 		//Test gateway session
 		GatewayConnection connection = new GatewayConnection("starbuck", "starbuck", "starbuck", "starbuck", 30);
 		byte[] buffer;
-    ModelViewer mv = new ModelViewer("ModelViewer.ini", 0, 0, false, false); mv.AUTO_REFRESH = true;
-		Vector<Point> points;
+    ModelViewer mv = new ModelViewer("ModelViewer.ini", 0, 0, false, false); mv.AUTO_REFRESH = true; mv.ADJUST = false;
+		Vector<Point> vertices;
 		Vector<Color> colors;
+		Vector<Face> faces;
 		Point center = null;
 		double radius = 1;
 		double scale = 200;
@@ -126,21 +133,29 @@ public class AnimatedMeshLoader_TEEVE_STREAM extends AnimatedMeshLoader
 			buffer = connection.getBuffer();
 			
 			if(buffer != null){
-				points = new Vector<Point>();
+				vertices = new Vector<Point>();
 				colors = new Vector<Color>();
-	  		Packetizer.depacketize(points, colors, buffer, buffer.length);
-	  	  
+				faces = new Vector<Face>();
+				
+	  		//Packetizer.depacketize(vertices, colors, buffer, buffer.length);
+	  		Packetizer.depacketize(vertices, colors, faces, buffer, buffer.length);
+
 	  		if(true){		//Center and scale points
 	  			if(center == null){
-	  				center = Point.getCentroid(points);
-	  				radius = Point.getRadius(points, center);
+	  				center = Point.getCentroid(vertices);
+	  				radius = Point.getRadius(vertices, center);
 	  			}
 	  			
-	  			points = (Point.transform(points, center, radius/scale, null));
+	  			vertices = (Point.transform(vertices, center, radius/scale, null));
 	  		}
-				
+	  		
 				//System.out.println("Points: " + points.size() + ", Colors: " + colors.size());
-				if(mv != null) mv.set(points, colors, false);
+				
+	  		if(mv != null){
+	  			Mesh mesh = new Mesh();
+	  			mesh.setData(vertices, colors, faces, false);
+					mv.setMesh(mesh);
+				}
 			}
 		
 			if(true){		//Display frames per second

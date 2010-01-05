@@ -3,6 +3,7 @@ import edu.ncsa.model.Mesh.*;
 import edu.ncsa.model.MeshAuxiliary.Camera;
 import edu.ncsa.model.MeshAuxiliary.RigidTransformation;
 import edu.ncsa.model.MeshAuxiliary.Point;
+import edu.ncsa.model.MeshAuxiliary.Face;
 import edu.ncsa.model.MeshAuxiliary.Material;
 import edu.ncsa.image.*;
 import edu.ncsa.matrix.*;
@@ -124,7 +125,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   private JMenuItem menuitem_SUBDIVIDE;
 
   private boolean LOAD_DEFAULT = true;
-  private boolean ADJUST = true; 
+  public boolean ADJUST = true; 
   private boolean ORTHO = true;
   private boolean AXIS = true;
   private boolean PC_AXIS = false;
@@ -666,6 +667,8 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     	}
     }
     
+    if(mesh.getVertices().size() == mesh.getVertexColors().size()) FOUND_COLORS = true;
+    
   	SHADED_LIGHTING_DISABLED = false;
   	SHADED_LIGHTING_ENABLED = !FOUND_COLORS;
   	SHADED_LIGHTING_MATERIAL = FOUND_COLORS;
@@ -690,34 +693,20 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     setPopupMenu();
     refreshList();
     UPDATE_CAMERA = true;		//Why do I need to update the camera (needed to display multiple modelviewers in modelbroswer)?
-    refresh(true);
+    REFRESH = true;
   }
 
-  /**
+	/**
    * Set points to visible/invisible
    * @param POINTS true if points are to be visible
    */
-  public void setPoints(boolean POINTS)
+  public void enablePoints(boolean POINTS)
   {
   	this.POINTS = POINTS;
     if(menuitem_POINTS != null) menuitem_POINTS.setSelected(POINTS); 	
   }
   
   /**
-   * Set model directly.
-   * @param vertices a vector of vertices
-   * @param colors a vector of vertex colors
-   * @param ADJUST true if the model should be centered and scaled
-   */
-  public void set(Vector<Point> vertices, Vector<MeshAuxiliary.Color> colors, boolean ADJUST)
-  {
-  	this.ADJUST = ADJUST;
-  	mesh = new Mesh();
-  	mesh.setData(vertices, colors, ADJUST);
-  	setMesh(mesh);
-  }
-  
-	/**
    * Load model into our mesh structure.
    *  @param filename the absolute name of the file
    *  @param progressCallBack the callback handling progress updates
@@ -2254,6 +2243,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     	if(REFRESH){
     		if(mesh instanceof AnimatedMesh){
     			((AnimatedMesh)mesh).setMesh();
+    			refreshList();
     		}
     		
 	      if(canvas instanceof GLCanvas){
