@@ -3,6 +3,7 @@ import edu.ncsa.model.MeshAuxiliary.*;
 import java.io.*;
 import java.util.*;
 import java.util.zip.*;
+import com.jcraft.jzlib.*;
 
 public class Packetizer
 {
@@ -43,29 +44,33 @@ public class Packetizer
   		byte[] color_buffer_c = GatewayUtility.subArray(buffer, 5+point_buffer_length_c, 5+point_buffer_length_c+color_buffer_length_c-1);
   		
   		//Decompress
-  		if(true){
-	  		Deflater deflater = new Deflater();
-	  		deflater.setInput(point_buffer_c);
-	  		deflater.finish();
-	  		deflater.deflate(point_buffer);
-	  		
-	  		deflater = new Deflater();
-	  		deflater.setInput(color_buffer_c);
-	  		deflater.finish();
-	  		deflater.deflate(color_buffer);
-  		}else{
-  			try{
-  				GZIPInputStream ins;
-  				
-  				ins = new GZIPInputStream(new ByteArrayInputStream(point_buffer_c));
-  				ins.read(point_buffer, 0, point_buffer_length);
-  				ins.close();
-  				
-  				ins = new GZIPInputStream(new ByteArrayInputStream(color_buffer_c));
-  				ins.read(color_buffer, 0, color_buffer_length);
-  				ins.close();
-  			}catch(Exception e) {e.printStackTrace();}
-  		}
+			ZStream zstream = new ZStream();
+			zstream.next_in = point_buffer_c;
+			zstream.next_in_index = 0;
+			zstream.next_out = point_buffer;
+			zstream.next_out_index = 0;
+			zstream.inflateInit();
+			
+			while(zstream.total_out < point_buffer_length && zstream.total_in<point_buffer_length_c){
+				zstream.avail_in = zstream.avail_out = 1;		//Force small buffers
+				zstream.inflate(JZlib.Z_NO_FLUSH);
+			}
+			
+			zstream.inflateEnd();
+			
+			zstream = new ZStream();
+			zstream.next_in = color_buffer_c;
+			zstream.next_in_index = 0;
+			zstream.next_out = color_buffer;
+			zstream.next_out_index = 0;
+			zstream.inflateInit();
+			
+			while(zstream.total_out < point_buffer_length && zstream.total_in<point_buffer_length_c){
+				zstream.avail_in = zstream.avail_out = 1;		//Force small buffers
+				zstream.inflate(JZlib.Z_NO_FLUSH);
+			}
+			
+			zstream.inflateEnd();
   					
   		//Calculate number of points in message
   		n = point_buffer_length / (3*2);

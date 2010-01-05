@@ -146,12 +146,13 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   private boolean METAL = false;
   private boolean REBUILD_DESCRIPTORS = false;
   private boolean RAYTRACE = false;
-  private boolean AUTO_REFRESH = false;
+  public boolean AUTO_REFRESH = false;
   private boolean ANTI_ALIASING = true;
   
   public boolean RUNNING = true;  
   private boolean UPDATE_CAMERA = false;
   protected boolean REFRESH = true;
+  private Object refresh_lock = new Object();
   
   private boolean SAVE_IMAGE = false;
   private boolean SAVE_VISUAL_HULL_VIEW = false;
@@ -406,7 +407,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
       }
       
       UPDATE_CAMERA = true;
-      REFRESH = true;
+      refresh(true);
     }
   }
 
@@ -689,7 +690,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     setPopupMenu();
     refreshList();
     UPDATE_CAMERA = true;		//Why do I need to update the camera (needed to display multiple modelviewers in modelbroswer)?
-    REFRESH = true;
+    refresh(true);
   }
 
   /**
@@ -791,7 +792,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     	}
       
       setPopupMenu();
-      REFRESH = true;
+      refresh(true);
       System.out.println("\t[Loaded in " + dt/1000.0 + "s]");
     }
   }
@@ -811,7 +812,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
       t0 = System.currentTimeMillis();
       output_name = pathname + filename;
       SAVE_IMAGE = true;
-      REFRESH = true;
+      refresh(true);
       t1 = System.currentTimeMillis();
     }else if(filename.contains(".vh")){		
       t0 = System.currentTimeMillis();
@@ -820,7 +821,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
       ORTHO = false; menuitem_ORTHO.setState(ORTHO);
       UPDATE_CAMERA = true;
       SAVE_VISUAL_HULL_VIEW = true;
-      REFRESH = true;
+      refresh(true);
       t1 = System.currentTimeMillis();
     }else if(filename.contains(".pc")){
       t0 = System.currentTimeMillis();
@@ -828,13 +829,13 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
       ORTHO = false; menuitem_ORTHO.setState(ORTHO);
       UPDATE_CAMERA = true;
       SAVE_POINTS_CAMERA = true;
-      REFRESH = true;
+      refresh(true);
       t1 = System.currentTimeMillis();
     }else if(filename.contains(".pgm")){
       t0 = System.currentTimeMillis();
       output_name = pathname + filename;
       SAVE_DEPTH = true;
-      REFRESH = true;
+      refresh(true);
       t1 = System.currentTimeMillis();
     }else{
     	t0 = System.currentTimeMillis();
@@ -857,7 +858,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     	//Update the viewer
       setPopupMenu();
       refreshList();
-      REFRESH = true;
+      refresh(true);
       
       t1 = System.currentTimeMillis();
     }
@@ -1121,11 +1122,11 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 
 	/**
    * Initialize the OpenGL canvas.
-   *  @param gLDrawable the OpenGL context to render to
+   *  @param drawable the OpenGL context to render to
    */
-  public void init(GLAutoDrawable gLDrawable)
+  public void init(GLAutoDrawable drawable)
   {
-    GL gl = gLDrawable.getGL();
+    GL gl = drawable.getGL();
     gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
     
     gl.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, light0_position, 0);
@@ -1151,10 +1152,10 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
       gl.glEnable(GL.GL_POLYGON_SMOOTH);
     }
     
-    gLDrawable.addKeyListener(this);
-    gLDrawable.addMouseListener(this);
-    gLDrawable.addMouseMotionListener(this);
-    gLDrawable.addMouseWheelListener(this);
+    drawable.addKeyListener(this);
+    drawable.addMouseListener(this);
+    drawable.addMouseMotionListener(this);
+    drawable.addMouseWheelListener(this);
     
     gl.glMatrixMode(GL.GL_PROJECTION);
     gl.glLoadIdentity();
@@ -1166,11 +1167,11 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 
 	/**
    * Render the scene.
-   *  @param gLDrawable the OpenGL context to render to
+   *  @param drawable the OpenGL context to render to
    */
-  public synchronized void display(GLAutoDrawable gLDrawable)
+  public synchronized void display(GLAutoDrawable drawable)
   {
-    GL gl = gLDrawable.getGL();
+    GL gl = drawable.getGL();
     gl.glClear(GL.GL_COLOR_BUFFER_BIT);
     gl.glClear(GL.GL_DEPTH_BUFFER_BIT);
     
@@ -1381,6 +1382,15 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     }
   }
 
+  /**
+   * Set refresh value.
+   * @param value true if the display should be refreshed
+   */
+  public synchronized void refresh(boolean value)
+  {
+  	REFRESH = value;
+  }
+  
 	/**
    * Rebuild the display list.
    */
@@ -1553,7 +1563,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   public int[] grabImage()
   {
   	GRAB_IMAGE = true;
-  	REFRESH = true;
+  	refresh(true);
     
     while(GRAB_IMAGE){
     	Utility.pause(100);
@@ -1643,7 +1653,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   				}
       	}
       	
-      	REFRESH = true;
+      	refresh(true);
       }else if(BENDING_JOINT){
         selected_component = mesh.getSelectionComponent(selected_component_faces, modelview, e.getX()-halfwidth, halfheight-e.getY());
         RIGHT_FUNCTION_PRIORITIZED = true;
@@ -1705,7 +1715,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     last_x = e.getX();
     last_y = e.getY();
     
-    REFRESH = true;
+    refresh(true);
   }
   
   /**
@@ -1787,7 +1797,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 	  	}
   	}
   	
-  	REFRESH = true;
+  	refresh(true);
   }
   
   /** 
@@ -1812,7 +1822,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     	}
     }
     
-    REFRESH = true;
+    refresh(true);
   }
   
   /**
@@ -1829,7 +1839,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   			selected_transformation.rz -= 2;
   		}
   		
-  		REFRESH = true;
+  		refresh(true);
   	}else if(e.getKeyChar() == 'R'){
   		if(RIGHT_FUNCTION_PRIORITIZED){
     		mesh.transformVertices(selected_components.get(selected_component), modelview, selected_joint, 0, 0, 2, 1, 1, 1, bend_smoothness);
@@ -1838,13 +1848,13 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   			selected_transformation.rz += 2;
   		}
   		
-  		REFRESH = true;
+  		refresh(true);
   	}else if(e.getKeyChar() == 'z'){
   		update_translation(selected_transformation, 0, 0, -10);
-  		REFRESH = true;
+  		refresh(true);
   	}else if(e.getKeyChar() == 'Z'){
   		update_translation(selected_transformation, 0, 0, 10);
-  		REFRESH = true;
+  		refresh(true);
   	}else if(e.getKeyChar() == '0'){
   		//Turn off all other radio buttons
 			for(int i=0; i<menuitem_MESHES.size(); i++){
@@ -1891,7 +1901,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   			SELECTING = false;
   		}
   		
-  		REFRESH = true;
+  		refresh(true);
   	}
   }
   
@@ -2210,7 +2220,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     	}
     }
     
-    REFRESH = true;
+    refresh(true);
   }
   
   public void reshape(GLAutoDrawable gLDrawable, int x, int y, int width, int height) {}
@@ -2223,16 +2233,16 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   public void mouseClicked(MouseEvent e) {}
   
   /**
-   * The paint function for the panel.  In addition to drawing the default JPanel paint,
+   * The paintComponent function for the panel.  In addition to calling the default JPanel paintComponent,
    * this function also resizes the viewer if it has changed.
    *  @param g the graphics context to paint to
    */
-  public void paint(Graphics g)
+  public void paintComponent(Graphics g)
   {
-    super.paint(g);
+    super.paintComponent(g);
     setSize((int)getSize().getWidth(), (int)getSize().getHeight());
   }
-
+  
 	/**
    * Threaded method used to refresh the scene.
    */
@@ -2250,8 +2260,10 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 	      	((GLCanvas)canvas).display();
 	      }else if(canvas instanceof GLJPanel){
 	      	((GLJPanel)canvas).display();
-	      }
+	      }	      
     	}
+    	
+    	Thread.yield();
     }
     
     System.exit(0);
@@ -2264,6 +2276,8 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   public static void main(String args[])
   {
     ModelViewer mv = new ModelViewer("ModelViewer.ini", false);
+    mv.AUTO_REFRESH = true;
+    
     JFrame frame = new JFrame("Model Viewer");
     frame.setSize(mv.width+9, mv.height+35);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

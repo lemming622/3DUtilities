@@ -102,7 +102,7 @@ public class AnimatedMeshLoader_TEEVE_STREAM extends AnimatedMeshLoader
 		//Test gateway session
 		GatewayConnection connection = new GatewayConnection("starbuck", "starbuck", "starbuck", "starbuck", 30);
 		byte[] buffer;
-    ModelViewer mv = new ModelViewer("ModelViewer.ini", 0, 0, false, false);
+    ModelViewer mv = new ModelViewer("ModelViewer.ini", 0, 0, false, false); mv.AUTO_REFRESH = true;
 		Vector<Point> points;
 		Vector<Color> colors;
 		Point center = null;
