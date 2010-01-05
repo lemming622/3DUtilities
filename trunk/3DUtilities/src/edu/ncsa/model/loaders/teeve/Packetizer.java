@@ -1,8 +1,6 @@
 package edu.ncsa.model.loaders.teeve;
 import edu.ncsa.model.MeshAuxiliary.*;
-import java.io.*;
 import java.util.*;
-import java.util.zip.*;
 import com.jcraft.jzlib.*;
 
 public class Packetizer
@@ -19,13 +17,15 @@ public class Packetizer
   	boolean compressed = GatewayUtility.byteToInt(buffer[0]) != 0;
   	byte[] point_buffer = null;
   	byte[] color_buffer = null;
-  	int n = 0;
-  	
-  	//System.out.println("Compressed: " + compressed);
+  	Point point;
+  	Color color;
+  	int n, at;
   	
   	points.clear();
-  	colors.clear();	
+  	colors.clear();
   	
+  	//System.out.println("Compressed: " + compressed);
+
   	if(!compressed){
   		n = buffer_length/(3 + 3*2);	//3 bytes for color, 2 bytes per coordinate
   		int c0 = 1 + n*3*2;
@@ -75,10 +75,9 @@ public class Packetizer
   		//Calculate number of points in message
   		n = point_buffer_length / (3*2);
   	}
-  
-  	Point point;
-  	Color color;
-  	int at = 0;
+  	
+  	//Retrieve points
+  	at = 0;
   	
   	for(int i=0; i<n; i++){
   		point = new Point();
@@ -89,6 +88,7 @@ public class Packetizer
   		at += 6;
   	}
   
+  	//Retrieve colors
   	at = 0;
   
   	for(int i=0; i<n; i++){
@@ -98,6 +98,92 @@ public class Packetizer
   		color.b = GatewayUtility.byteToInt(color_buffer[at+2]) / 255f;
   		colors.add(color);
   		at += 3;
+  	}
+  }
+  
+	/**
+   * De-packetize the given buffer to extract point, color, and face information.
+   * @param vertices the list of vertices that this function will fill
+   * @param colors the list of colors that this function will fill
+   * @param faces the list of faces that this function will fill
+   * @param buffer the buffer containing the data
+   * @param buffer_length the used length of the buffer
+   */
+  public static void depacketize(Vector<Point> vertices, Vector<Color> colors, Vector<Face> faces, byte[] buffer, int buffer_length)
+  {
+  	boolean compressed = GatewayUtility.byteToInt(buffer[0]) != 0;
+  	byte[] point_buffer = null;
+  	byte[] color_buffer = null;
+  	byte[] face_buffer = null;
+  	Point point;
+  	Color color;
+  	Face face;
+  	int nv, nf, at;
+  	
+  	vertices.clear();
+  	colors.clear();
+  	faces.clear();
+  	
+  	//System.out.println("Compressed: " + compressed);
+  	
+  	//Retrieve number of vertices/faces
+  	at = 1;
+  	nv = GatewayUtility.bytesToInt(buffer[at+0], buffer[at+1], buffer[at+2], buffer[at+3], false);
+  	//System.out.println("vertices: " + nv);
+  	
+  	at = 1 + 4 + nv*3*2 + nv*3;
+  	nf = GatewayUtility.bytesToInt(buffer[at+0], buffer[at+1], buffer[at+2], buffer[at+3], false);
+  	//System.out.println("faces: " + nf);
+  	
+  	//Retrieve buffers
+  	if(!compressed){
+  		at = 1 + 4;
+  		point_buffer = GatewayUtility.subArray(buffer, at, at + nv*3*2-1);
+  		
+  		at += nv*3*2;
+  		color_buffer = GatewayUtility.subArray(buffer, at, at + nv*3-1);
+  		
+  		at += nv*3 + 4;
+  		face_buffer = GatewayUtility.subArray(buffer, at, buffer_length-1);
+  	}else{
+  		System.out.println("Warning: compression not supported!");
+  	}
+  	
+  	//Retrieve points
+  	at = 0;
+  	
+  	for(int i=0; i<nv; i++){
+  		point = new Point();
+  		point.x = GatewayUtility.bytesToShort(point_buffer[at], point_buffer[at+1], false);
+  		point.y = GatewayUtility.bytesToShort(point_buffer[at+2], point_buffer[at+3], false);
+  		point.z = GatewayUtility.bytesToShort(point_buffer[at+4], point_buffer[at+5], false);
+  		vertices.add(point);
+  		at += 6;
+  	}
+  
+  	//Retrieve colors
+  	at = 0;
+  
+  	for(int i=0; i<nv; i++){
+  		color = new Color();
+  		color.r = GatewayUtility.byteToInt(color_buffer[at]) / 255f;
+  		color.g = GatewayUtility.byteToInt(color_buffer[at+1]) / 255f;
+  		color.b = GatewayUtility.byteToInt(color_buffer[at+2]) / 255f;
+  		colors.add(color);
+  		at += 3;
+  	}
+  	
+  	//Retrieve faces
+  	at = 0;
+  	
+  	for(int i=0; i<nf; i++){
+  		face = new Face(3);
+  		face.v[0] = GatewayUtility.bytesToShort(face_buffer[at], face_buffer[at+1], false);
+  		face.v[1] = GatewayUtility.bytesToShort(face_buffer[at+2], face_buffer[at+3], false);
+  		face.v[2] = GatewayUtility.bytesToShort(face_buffer[at+4], face_buffer[at+5], false);
+  		face.normal = new Point(0, 0, -1);
+  		faces.add(face);
+  		at += 6;
   	}
   }
 }
