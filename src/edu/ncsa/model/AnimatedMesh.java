@@ -20,6 +20,11 @@ public class AnimatedMesh extends Mesh
 	  		  	
 	  	try{animation_loaders.add(new AnimatedMeshLoader_TEEVE_STREAM());}catch(Throwable t) {}
 	  	try{animation_loaders.add(new AnimatedMeshLoader_TEEVE());}catch(Throwable t) {}
+	  	
+	  	//Identify loadable file types
+	  	for(int i=0; i<animation_loaders.size(); i++){
+	  	  formats.add(animation_loaders.get(i).type());	
+	  	}
   	}		
 	}
 	
