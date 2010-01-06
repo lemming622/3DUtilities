@@ -27,53 +27,33 @@ public class Packetizer
   	//System.out.println("Compressed: " + compressed);
 
   	if(!compressed){
-  		n = buffer_length/(3 + 3*2);	//3 bytes for color, 2 bytes per coordinate
-  		int c0 = 1 + n*3*2;
+  		int c0;
+  		
+  		n = buffer_length / (3 + 3*2);	//Number of points based on 3 bytes for color and 2 bytes per coordinate
+  		c0 = 1 + n*3*2;
   					
   		point_buffer = GatewayUtility.subArray(buffer, 1, c0-1);
   		color_buffer = GatewayUtility.subArray(buffer, c0, buffer_length-1);
   	}else{
-  		int point_buffer_length_c = GatewayUtility.bytesToInt(buffer[1], buffer[2], buffer[3], buffer[4], false);
-  		int point_buffer_length = point_buffer_length_c*10;
-  		int color_buffer_length_c = buffer_length - 1 - 4 - point_buffer_length_c;
-  		int color_buffer_length = color_buffer_length_c*10;
-  					  		
+  		byte[] point_buffer_c;
+  		byte[] color_buffer_c;
+  		int point_buffer_length, point_buffer_length_c;
+  		int color_buffer_length, color_buffer_length_c;
+  		
+  		point_buffer_length_c = GatewayUtility.bytesToInt(buffer[1], buffer[2], buffer[3], buffer[4], false);
+  		point_buffer_length = point_buffer_length_c*10;
+  		color_buffer_length_c = buffer_length - 1 - 4 - point_buffer_length_c;
+  		color_buffer_length = color_buffer_length_c*10;
+  		n = point_buffer_length / (3*2);	//Number of points in message
+  		
   		point_buffer = new byte[point_buffer_length];
-  		byte[] point_buffer_c = GatewayUtility.subArray(buffer, 5, 5+point_buffer_length_c-1);
+  		point_buffer_c = GatewayUtility.subArray(buffer, 5, 5+point_buffer_length_c-1);
   		color_buffer = new byte[color_buffer_length];	
-  		byte[] color_buffer_c = GatewayUtility.subArray(buffer, 5+point_buffer_length_c, 5+point_buffer_length_c+color_buffer_length_c-1);
+  		color_buffer_c = GatewayUtility.subArray(buffer, 5+point_buffer_length_c, 5+point_buffer_length_c+color_buffer_length_c-1);
   		
   		//Decompress
-			ZStream zstream = new ZStream();
-			zstream.next_in = point_buffer_c;
-			zstream.next_in_index = 0;
-			zstream.next_out = point_buffer;
-			zstream.next_out_index = 0;
-			zstream.inflateInit();
-			
-			while(zstream.total_out < point_buffer_length && zstream.total_in<point_buffer_length_c){
-				zstream.avail_in = zstream.avail_out = 1;		//Force small buffers
-				zstream.inflate(JZlib.Z_NO_FLUSH);
-			}
-			
-			zstream.inflateEnd();
-			
-			zstream = new ZStream();
-			zstream.next_in = color_buffer_c;
-			zstream.next_in_index = 0;
-			zstream.next_out = color_buffer;
-			zstream.next_out_index = 0;
-			zstream.inflateInit();
-			
-			while(zstream.total_out < point_buffer_length && zstream.total_in<point_buffer_length_c){
-				zstream.avail_in = zstream.avail_out = 1;		//Force small buffers
-				zstream.inflate(JZlib.Z_NO_FLUSH);
-			}
-			
-			zstream.inflateEnd();
-  					
-  		//Calculate number of points in message
-  		n = point_buffer_length / (3*2);
+  		uncompress(point_buffer_c, point_buffer);
+  		uncompress(color_buffer_c, color_buffer);
   	}
   	
   	//Retrieve points
@@ -102,7 +82,7 @@ public class Packetizer
   }
   
 	/**
-   * De-packetize the given buffer to extract point, color, and face information.
+   * De-packetize the given buffer to extract vertex, color, and face information.
    * @param vertices the list of vertices that this function will fill
    * @param colors the list of colors that this function will fill
    * @param faces the list of faces that this function will fill
@@ -112,7 +92,7 @@ public class Packetizer
   public static void depacketize(Vector<Point> vertices, Vector<Color> colors, Vector<Face> faces, byte[] buffer, int buffer_length)
   {
   	boolean compressed = GatewayUtility.byteToInt(buffer[0]) != 0;
-  	byte[] point_buffer = null;
+  	byte[] vertex_buffer = null;
   	byte[] color_buffer = null;
   	byte[] face_buffer = null;
   	Point point;
@@ -131,32 +111,68 @@ public class Packetizer
   	nv = GatewayUtility.bytesToInt(buffer[at+0], buffer[at+1], buffer[at+2], buffer[at+3], false);
   	//System.out.println("vertices: " + nv);
   	
-  	at = 1 + 4 + nv*3*2 + nv*3;
+  	at = 1 + 4;
   	nf = GatewayUtility.bytesToInt(buffer[at+0], buffer[at+1], buffer[at+2], buffer[at+3], false);
   	//System.out.println("faces: " + nf);
   	
   	//Retrieve buffers
   	if(!compressed){
-  		at = 1 + 4;
-  		point_buffer = GatewayUtility.subArray(buffer, at, at + nv*3*2-1);
+  		at = 1 + 4 + 4;
+  		vertex_buffer = GatewayUtility.subArray(buffer, at, at + nv*3*2-1);
   		
   		at += nv*3*2;
   		color_buffer = GatewayUtility.subArray(buffer, at, at + nv*3-1);
   		
-  		at += nv*3 + 4;
+  		at += nv*3;
   		face_buffer = GatewayUtility.subArray(buffer, at, buffer_length-1);
   	}else{
-  		System.out.println("Warning: compression not supported!");
+  		byte[] vertex_buffer_c;
+  		byte[] color_buffer_c;
+  		byte[] face_buffer_c;
+  		int vertex_buffer_length, vertex_buffer_length_c;
+  		int color_buffer_length, color_buffer_length_c;
+  		int face_buffer_length, face_buffer_length_c;
+  		
+  		//Retrieve buffer sizes
+  		at = 1 + 4 + 4;
+  		vertex_buffer_length_c = GatewayUtility.bytesToInt(buffer[at+0], buffer[at+1], buffer[at+2], buffer[at+3], false);
+  		vertex_buffer_length = vertex_buffer_length_c*10;
+  		
+  		at += 4;
+  		color_buffer_length_c = GatewayUtility.bytesToInt(buffer[at+0], buffer[at+1], buffer[at+2], buffer[at+3], false);
+  		color_buffer_length = color_buffer_length_c*10;
+  		
+  		at += 4;
+  		face_buffer_length_c = GatewayUtility.bytesToInt(buffer[at+0], buffer[at+1], buffer[at+2], buffer[at+3], false);
+  		face_buffer_length = face_buffer_length_c*10;
+  		
+  		//Retrieve compressed data buffers
+  		at += 4;
+  		vertex_buffer = new byte[vertex_buffer_length];
+  		vertex_buffer_c = GatewayUtility.subArray(buffer, at, at+vertex_buffer_length_c-1);
+  		
+  		at += vertex_buffer_length_c;
+  		color_buffer = new byte[color_buffer_length];	
+  		color_buffer_c = GatewayUtility.subArray(buffer, at, at+color_buffer_length_c-1);
+  		
+  		at += color_buffer_length_c;
+  		face_buffer = new byte[face_buffer_length];	
+  		face_buffer_c = GatewayUtility.subArray(buffer, at, at+face_buffer_length_c-1);
+  		
+  		//Decompress
+  		uncompress(vertex_buffer_c, vertex_buffer);
+  		uncompress(color_buffer_c, color_buffer);
+  		uncompress(face_buffer_c, face_buffer);
   	}
   	
-  	//Retrieve points
+  	//Retrieve vertices
   	at = 0;
   	
   	for(int i=0; i<nv; i++){
   		point = new Point();
-  		point.x = GatewayUtility.bytesToShort(point_buffer[at], point_buffer[at+1], false);
-  		point.y = GatewayUtility.bytesToShort(point_buffer[at+2], point_buffer[at+3], false);
-  		point.z = GatewayUtility.bytesToShort(point_buffer[at+4], point_buffer[at+5], false);
+  		point.x = GatewayUtility.bytesToShort(vertex_buffer[at], vertex_buffer[at+1], false);
+  		point.y = GatewayUtility.bytesToShort(vertex_buffer[at+2], vertex_buffer[at+3], false);
+  		point.z = GatewayUtility.bytesToShort(vertex_buffer[at+4], vertex_buffer[at+5], false);
   		vertices.add(point);
   		at += 6;
   	}
@@ -185,5 +201,27 @@ public class Packetizer
   		faces.add(face);
   		at += 6;
   	}
+  }
+  
+  /**
+   * A wrapper for jzlib's uncompression.
+   * @param compressed_data the buffer containing the compressed data
+   * @param uncompressed_data the buffer containing the uncompressed data
+   */
+  private static void uncompress(byte[] compressed_data, byte[] uncompressed_data)
+  {
+		ZStream zstream = new ZStream();
+		zstream.next_in = compressed_data;
+		zstream.next_in_index = 0;
+		zstream.next_out = uncompressed_data;
+		zstream.next_out_index = 0;
+		zstream.inflateInit();
+		
+		while(zstream.total_out < uncompressed_data.length && zstream.total_in<compressed_data.length){
+			zstream.avail_in = zstream.avail_out = 1;		//Force small buffers
+			zstream.inflate(JZlib.Z_NO_FLUSH);
+		}
+		
+		zstream.inflateEnd();
   }
 }
