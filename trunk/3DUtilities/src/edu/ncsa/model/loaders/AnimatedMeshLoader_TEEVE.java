@@ -34,7 +34,9 @@ public class AnimatedMeshLoader_TEEVE extends AnimatedMeshLoader
 	public AnimatedMesh load(String filename)
 	{
 		AnimatedMeshLoader_TEEVE animation_loader = new AnimatedMeshLoader_TEEVE();	//Create an instance of this loader to become apart of the returned animated mesh.
+		AnimatedMesh mesh = new AnimatedMesh(animation_loader); mesh.addFileMetaData(filename);
 		
+		//Initialize the file loader for the animated mesh
 		animation_loader.filename = filename;
 		
   	try{
@@ -45,7 +47,7 @@ public class AnimatedMeshLoader_TEEVE extends AnimatedMeshLoader
   		animation_loader.file_buffer.rewind();
   	}catch(Exception e) {e.printStackTrace();}
   	
-		return new AnimatedMesh(animation_loader);
+		return mesh;
 	}
 	
 	/**
