@@ -66,5 +66,6 @@
 	<classpathentry kind="lib" path="lib/ncsa/MatrixUtilities.jar"/>
 	<classpathentry kind="lib" path="lib/ncsa/Utilities.jar"/>
 	<classpathentry kind="lib" path="lib/misc/jzlib.jar"/>
+	<classpathentry kind="lib" path="lib/ncsa/MLUtilities.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
