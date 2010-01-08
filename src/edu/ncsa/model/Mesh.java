@@ -45,7 +45,7 @@ public class Mesh
   private Class Descriptor = null;
   private MeshDescriptor descriptor = null;
   private TreeMap<String,Vector<Integer>> groups = new TreeMap<String,Vector<Integer>>();
-  private TreeMap<String,String> metadata = new TreeMap<String,String>();   
+  protected TreeMap<String,String> metadata = new TreeMap<String,String>();   
   private static Vector<MeshLoader> loaders = null;
   
   /** A list of supported formats. */
@@ -1154,7 +1154,7 @@ public class Mesh
    * Copy the contents of another mesh to this mesh.
    *  @param m the mesh to assign values from
    */
-  public void assign(Mesh m)
+  public void deepCopy(Mesh m)
   {
   	vertices = (Vector<Point>)Utility.deepCopy(m.vertices);
     faces = (Vector<Face>)Utility.deepCopy(m.faces);
@@ -2024,7 +2024,7 @@ public class Mesh
   public void drawPoints(GL gl)
   {
     gl.glDisable(GL.GL_LIGHTING);
-    gl.glPointSize(2);
+    gl.glPointSize(6);		//Default: 2
     gl.glBegin(GL.GL_POINTS);
     
     if(vertex_colors.size() != vertices.size()){

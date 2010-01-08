@@ -131,10 +131,7 @@ public class AnimatedMesh extends Mesh
    */
   public void setMesh()
   {
-  	if(animation_loader != null){
-  		super.transfer(animation_loader.getMesh());
-			vertices = (Point.transform(vertices, animation_offset, animation_scale, null));
-  	}
+  	setMesh(-1);
   }
   
   /**
@@ -144,7 +141,21 @@ public class AnimatedMesh extends Mesh
   public void setMesh(double t)
   {
   	if(animation_loader != null){
-  		super.transfer(animation_loader.getMesh(t));
+  		TreeMap<String,String> metadata_backup = metadata;		//Backup metadata
+  		
+  		if(t < 0){
+  			super.transfer(animation_loader.getMesh());
+  		}else{
+  			super.transfer(animation_loader.getMesh(t));
+  		}
+  		
+  		//Restore top level metadata (for the overall animation)
+  		metadata.put("Name", metadata_backup.get("Name"));
+  		metadata.put("File", metadata_backup.get("File"));
+  		metadata.put("Type", metadata_backup.get("Type"));
+
+  		//Transform vertices according to animation offset and scale
+			vertices = (Point.transform(vertices, animation_offset, animation_scale, null));
   	}
   }
 }
