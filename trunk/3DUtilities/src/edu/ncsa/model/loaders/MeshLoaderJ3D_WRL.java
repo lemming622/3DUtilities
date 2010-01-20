@@ -58,9 +58,9 @@ public class MeshLoaderJ3D_WRL extends MeshLoaderJ3D
    */
   public void collapseWRL(String path, String file, String temp_path)
   {
-    String buffer = Utility.loadFile(path + file);
+    String buffer = Utility.loadToString(path + file);
     buffer = collapseWRL_aux(buffer, path, temp_path);
-    Utility.saveFile(temp_path + "." + file, buffer);
+    Utility.save(temp_path + "." + file, buffer);
   }
   
   /**
@@ -103,7 +103,7 @@ public class MeshLoaderJ3D_WRL extends MeshLoaderJ3D
             }
             
             url_path = url.substring(0, url.lastIndexOf('/')+1);
-            tmp = Utility.loadFile(path + url);
+            tmp = Utility.loadToString(path + url);
             tmp = collapseWRL_aux(tmp, path+url_path, temp_path);
             output.append(tmp);                          //Append inline file
           }
