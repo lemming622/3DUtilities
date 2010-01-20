@@ -2,6 +2,7 @@ package edu.ncsa.model.loaders;
 import edu.ncsa.model.*;
 import edu.ncsa.model.MeshAuxiliary.*;
 import edu.ncsa.model.loaders.teeve.*;
+import edu.ncsa.utility.*;
 import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;
@@ -70,7 +71,7 @@ public class AnimatedMeshLoader_TEEVE extends AnimatedMeshLoader
   	byte[] buffer;
   	int buffer_length;
   	
-		buffer_length = GatewayUtility.bytesToInt(file_buffer.get(), file_buffer.get(), file_buffer.get(), file_buffer.get(), false);
+		buffer_length = Utility.bytesToInt(file_buffer.get(), file_buffer.get(), file_buffer.get(), file_buffer.get(), false);
 		buffer = new byte[buffer_length];
 		file_buffer.get(buffer);
   	Packetizer.depacketize(vertices, colors, buffer, buffer.length);

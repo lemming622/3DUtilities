@@ -1,5 +1,6 @@
 package edu.ncsa.model.loaders.teeve;
 import edu.ncsa.model.MeshAuxiliary.*;
+import edu.ncsa.utility.*;
 import java.util.*;
 import com.jcraft.jzlib.*;
 
@@ -14,7 +15,7 @@ public class Packetizer
    */
   public static void depacketize(Vector<Point> points, Vector<Color> colors, byte[] buffer, int buffer_length)
   {
-  	boolean compressed = GatewayUtility.byteToInt(buffer[0]) != 0;
+  	boolean compressed = Utility.byteToInt(buffer[0]) != 0;
   	byte[] point_buffer = null;
   	byte[] color_buffer = null;
   	Point point;
@@ -32,24 +33,24 @@ public class Packetizer
   		n = buffer_length / (3 + 3*2);	//Number of points based on 3 bytes for color and 2 bytes per coordinate
   		c0 = 1 + n*3*2;
   					
-  		point_buffer = GatewayUtility.subArray(buffer, 1, c0-1);
-  		color_buffer = GatewayUtility.subArray(buffer, c0, buffer_length-1);
+  		point_buffer = Utility.subArray(buffer, 1, c0-1);
+  		color_buffer = Utility.subArray(buffer, c0, buffer_length-1);
   	}else{
   		byte[] point_buffer_c;
   		byte[] color_buffer_c;
   		int point_buffer_length, point_buffer_length_c;
   		int color_buffer_length, color_buffer_length_c;
   		
-  		point_buffer_length_c = GatewayUtility.bytesToInt(buffer[1], buffer[2], buffer[3], buffer[4], false);
+  		point_buffer_length_c = Utility.bytesToInt(buffer[1], buffer[2], buffer[3], buffer[4], false);
   		point_buffer_length = point_buffer_length_c*10;
   		color_buffer_length_c = buffer_length - 1 - 4 - point_buffer_length_c;
   		color_buffer_length = color_buffer_length_c*10;
   		n = point_buffer_length / (3*2);	//Number of points in message
   		
   		point_buffer = new byte[point_buffer_length];
-  		point_buffer_c = GatewayUtility.subArray(buffer, 5, 5+point_buffer_length_c-1);
+  		point_buffer_c = Utility.subArray(buffer, 5, 5+point_buffer_length_c-1);
   		color_buffer = new byte[color_buffer_length];	
-  		color_buffer_c = GatewayUtility.subArray(buffer, 5+point_buffer_length_c, 5+point_buffer_length_c+color_buffer_length_c-1);
+  		color_buffer_c = Utility.subArray(buffer, 5+point_buffer_length_c, 5+point_buffer_length_c+color_buffer_length_c-1);
   		
   		//Decompress
   		uncompress(point_buffer_c, point_buffer);
@@ -61,9 +62,9 @@ public class Packetizer
   	
   	for(int i=0; i<n; i++){
   		point = new Point();
-  		point.x = GatewayUtility.bytesToShort(point_buffer[at], point_buffer[at+1], false);
-  		point.y = GatewayUtility.bytesToShort(point_buffer[at+2], point_buffer[at+3], false);
-  		point.z = GatewayUtility.bytesToShort(point_buffer[at+4], point_buffer[at+5], false);
+  		point.x = Utility.bytesToShort(point_buffer[at], point_buffer[at+1], false);
+  		point.y = Utility.bytesToShort(point_buffer[at+2], point_buffer[at+3], false);
+  		point.z = Utility.bytesToShort(point_buffer[at+4], point_buffer[at+5], false);
   		points.add(point);
   		at += 6;
   	}
@@ -73,9 +74,9 @@ public class Packetizer
   
   	for(int i=0; i<n; i++){
   		color = new Color();
-  		color.r = GatewayUtility.byteToInt(color_buffer[at]) / 255f;
-  		color.g = GatewayUtility.byteToInt(color_buffer[at+1]) / 255f;
-  		color.b = GatewayUtility.byteToInt(color_buffer[at+2]) / 255f;
+  		color.r = Utility.byteToInt(color_buffer[at]) / 255f;
+  		color.g = Utility.byteToInt(color_buffer[at+1]) / 255f;
+  		color.b = Utility.byteToInt(color_buffer[at+2]) / 255f;
   		colors.add(color);
   		at += 3;
   	}
@@ -91,7 +92,7 @@ public class Packetizer
    */
   public static void depacketize(Vector<Point> vertices, Vector<Color> colors, Vector<Face> faces, byte[] buffer, int buffer_length)
   {
-  	boolean compressed = GatewayUtility.byteToInt(buffer[0]) != 0;
+  	boolean compressed = Utility.byteToInt(buffer[0]) != 0;
   	byte[] vertex_buffer = null;
   	byte[] color_buffer = null;
   	byte[] face_buffer = null;
@@ -108,23 +109,23 @@ public class Packetizer
   	
   	//Retrieve number of vertices/faces
   	at = 1;
-  	nv = GatewayUtility.bytesToInt(buffer[at+0], buffer[at+1], buffer[at+2], buffer[at+3], false);
+  	nv = Utility.bytesToInt(buffer[at+0], buffer[at+1], buffer[at+2], buffer[at+3], false);
   	//System.out.println("vertices: " + nv);
   	
   	at = 1 + 4;
-  	nf = GatewayUtility.bytesToInt(buffer[at+0], buffer[at+1], buffer[at+2], buffer[at+3], false);
+  	nf = Utility.bytesToInt(buffer[at+0], buffer[at+1], buffer[at+2], buffer[at+3], false);
   	//System.out.println("faces: " + nf);
   	
   	//Retrieve buffers
   	if(!compressed){
   		at = 1 + 4 + 4;
-  		vertex_buffer = GatewayUtility.subArray(buffer, at, at + nv*3*2-1);
+  		vertex_buffer = Utility.subArray(buffer, at, at + nv*3*2-1);
   		
   		at += nv*3*2;
-  		color_buffer = GatewayUtility.subArray(buffer, at, at + nv*3-1);
+  		color_buffer = Utility.subArray(buffer, at, at + nv*3-1);
   		
   		at += nv*3;
-  		face_buffer = GatewayUtility.subArray(buffer, at, buffer_length-1);
+  		face_buffer = Utility.subArray(buffer, at, buffer_length-1);
   	}else{
   		byte[] vertex_buffer_c;
   		byte[] color_buffer_c;
@@ -135,29 +136,29 @@ public class Packetizer
   		
   		//Retrieve buffer sizes
   		at = 1 + 4 + 4;
-  		vertex_buffer_length_c = GatewayUtility.bytesToInt(buffer[at+0], buffer[at+1], buffer[at+2], buffer[at+3], false);
+  		vertex_buffer_length_c = Utility.bytesToInt(buffer[at+0], buffer[at+1], buffer[at+2], buffer[at+3], false);
   		vertex_buffer_length = vertex_buffer_length_c*10;
   		
   		at += 4;
-  		color_buffer_length_c = GatewayUtility.bytesToInt(buffer[at+0], buffer[at+1], buffer[at+2], buffer[at+3], false);
+  		color_buffer_length_c = Utility.bytesToInt(buffer[at+0], buffer[at+1], buffer[at+2], buffer[at+3], false);
   		color_buffer_length = color_buffer_length_c*10;
   		
   		at += 4;
-  		face_buffer_length_c = GatewayUtility.bytesToInt(buffer[at+0], buffer[at+1], buffer[at+2], buffer[at+3], false);
+  		face_buffer_length_c = Utility.bytesToInt(buffer[at+0], buffer[at+1], buffer[at+2], buffer[at+3], false);
   		face_buffer_length = face_buffer_length_c*10;
   		
   		//Retrieve compressed data buffers
   		at += 4;
   		vertex_buffer = new byte[vertex_buffer_length];
-  		vertex_buffer_c = GatewayUtility.subArray(buffer, at, at+vertex_buffer_length_c-1);
+  		vertex_buffer_c = Utility.subArray(buffer, at, at+vertex_buffer_length_c-1);
   		
   		at += vertex_buffer_length_c;
   		color_buffer = new byte[color_buffer_length];	
-  		color_buffer_c = GatewayUtility.subArray(buffer, at, at+color_buffer_length_c-1);
+  		color_buffer_c = Utility.subArray(buffer, at, at+color_buffer_length_c-1);
   		
   		at += color_buffer_length_c;
   		face_buffer = new byte[face_buffer_length];	
-  		face_buffer_c = GatewayUtility.subArray(buffer, at, at+face_buffer_length_c-1);
+  		face_buffer_c = Utility.subArray(buffer, at, at+face_buffer_length_c-1);
   		
   		//Decompress
   		uncompress(vertex_buffer_c, vertex_buffer);
@@ -170,9 +171,9 @@ public class Packetizer
   	
   	for(int i=0; i<nv; i++){
   		point = new Point();
-  		point.x = GatewayUtility.bytesToShort(vertex_buffer[at], vertex_buffer[at+1], false);
-  		point.y = GatewayUtility.bytesToShort(vertex_buffer[at+2], vertex_buffer[at+3], false);
-  		point.z = GatewayUtility.bytesToShort(vertex_buffer[at+4], vertex_buffer[at+5], false);
+  		point.x = Utility.bytesToShort(vertex_buffer[at], vertex_buffer[at+1], false);
+  		point.y = Utility.bytesToShort(vertex_buffer[at+2], vertex_buffer[at+3], false);
+  		point.z = Utility.bytesToShort(vertex_buffer[at+4], vertex_buffer[at+5], false);
   		vertices.add(point);
   		at += 6;
   	}
@@ -182,9 +183,9 @@ public class Packetizer
   
   	for(int i=0; i<nv; i++){
   		color = new Color();
-  		color.r = GatewayUtility.byteToInt(color_buffer[at]) / 255f;
-  		color.g = GatewayUtility.byteToInt(color_buffer[at+1]) / 255f;
-  		color.b = GatewayUtility.byteToInt(color_buffer[at+2]) / 255f;
+  		color.r = Utility.byteToInt(color_buffer[at]) / 255f;
+  		color.g = Utility.byteToInt(color_buffer[at+1]) / 255f;
+  		color.b = Utility.byteToInt(color_buffer[at+2]) / 255f;
   		colors.add(color);
   		at += 3;
   	}
@@ -194,9 +195,9 @@ public class Packetizer
   	
   	for(int i=0; i<nf; i++){
   		face = new Face(3);
-  		face.v[0] = GatewayUtility.bytesToShort(face_buffer[at], face_buffer[at+1], false);
-  		face.v[1] = GatewayUtility.bytesToShort(face_buffer[at+2], face_buffer[at+3], false);
-  		face.v[2] = GatewayUtility.bytesToShort(face_buffer[at+4], face_buffer[at+5], false);
+  		face.v[0] = Utility.bytesToShort(face_buffer[at], face_buffer[at+1], false);
+  		face.v[1] = Utility.bytesToShort(face_buffer[at+2], face_buffer[at+3], false);
+  		face.v[2] = Utility.bytesToShort(face_buffer[at+4], face_buffer[at+5], false);
   		face.normal = new Point(0, 0, -1);
   		faces.add(face);
   		at += 6;

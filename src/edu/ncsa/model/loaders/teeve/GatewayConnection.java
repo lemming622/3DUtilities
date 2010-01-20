@@ -1,6 +1,6 @@
 package edu.ncsa.model.loaders.teeve;
 import edu.ncsa.model.loaders.teeve.GatewayAuxiliary.*;
-import edu.ncsa.model.loaders.teeve.GatewayUtility;
+import edu.ncsa.utility.*;
 import java.io.*;
 import java.net.*;
 
@@ -82,7 +82,7 @@ public class GatewayConnection implements Runnable
 		try{
 			//Get header
 			ins.read(header, 0, header.length);
-			buffer_length = GatewayUtility.bytesToInt(header[6], header[7], header[8], header[9], false);
+			buffer_length = Utility.bytesToInt(header[6], header[7], header[8], header[9], false);
 			
 			//Get data
 			if(buffer == null || buffer_length > buffer.length){
@@ -102,7 +102,7 @@ public class GatewayConnection implements Runnable
 			  System.out.print("\nHeader (length=" + header.length + "): ");
 			  
 			  for(int i=0; i<header.length; i++){
-			  	System.out.print(GatewayUtility.byteToInt(header[i]) + " ");
+			  	System.out.print(Utility.byteToInt(header[i]) + " ");
 			  }
 			 
 			  printBuffer();
