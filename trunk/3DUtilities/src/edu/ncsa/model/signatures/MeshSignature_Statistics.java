@@ -1,18 +1,18 @@
-package edu.ncsa.model.descriptors;
+package edu.ncsa.model.signatures;
 import edu.ncsa.model.*;
 import edu.ncsa.model.MeshAuxiliary.*;
 import edu.ncsa.utility.*;
 import java.util.*;
 
 /**
- * A descriptor used to describe a 3D mesh based on its vertex statistics.
+ * A signature used to describe a 3D mesh based on its vertex statistics.
  *  @author Kenton McHenry
  */
-public class MeshDescriptor_Statistics extends MeshSignature
+public class MeshSignature_Statistics extends MeshSignature
 {
   /**
-   * Get the type of mesh descriptor this is.
-   *  @return the type of mesh descriptor
+   * Get the type of mesh signature this is.
+   *  @return the type of mesh signature
    */
   public String getType()
   {
@@ -20,11 +20,11 @@ public class MeshDescriptor_Statistics extends MeshSignature
   }
   
   /**
-   * Clone this descriptor.
+   * Clone this signature.
    */
-	public MeshDescriptor_Statistics clone()
+	public MeshSignature_Statistics clone()
 	{
-  	MeshDescriptor_Statistics smd = new MeshDescriptor_Statistics();
+  	MeshSignature_Statistics smd = new MeshSignature_Statistics();
     smd.mesh = mesh;
     smd.signature = (Vector<double[]>)Utility.deepCopy(signature);
     
@@ -32,7 +32,7 @@ public class MeshDescriptor_Statistics extends MeshSignature
 	}
 	
   /**
-   * Construct the descriptor from the given model.
+   * Construct the signature from the given model.
    *  @param m the 3D model
    */
 	public void setSignature(Mesh m)

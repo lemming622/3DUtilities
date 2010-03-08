@@ -1,18 +1,18 @@
-package edu.ncsa.model.descriptors;
+package edu.ncsa.model.signatures;
 import edu.ncsa.model.*;
 import edu.ncsa.model.MeshAuxiliary.*;
 import edu.ncsa.utility.*;
 import java.util.*;
 
 /**
- * A descriptor used to describe a 3D mesh based on its surface area.
+ * A signature used to describe a 3D mesh based on its surface area.
  *  @author Kenton McHenry
  */
-public class MeshDescriptor_SurfaceArea extends MeshSignature
+public class MeshSignature_SurfaceArea extends MeshSignature
 {
   /**
-   * Get the type of mesh descriptor this is.
-   *  @return the type of mesh descriptor
+   * Get the type of mesh signature this is.
+   *  @return the type of mesh signature
    */
   public String getType()
   {
@@ -20,11 +20,11 @@ public class MeshDescriptor_SurfaceArea extends MeshSignature
   }
   
   /**
-   * Clone this descriptor.
+   * Clone this signature.
    */
-	public MeshDescriptor_SurfaceArea clone()
+	public MeshSignature_SurfaceArea clone()
 	{
-  	MeshDescriptor_SurfaceArea samd = new MeshDescriptor_SurfaceArea();
+  	MeshSignature_SurfaceArea samd = new MeshSignature_SurfaceArea();
     samd.mesh = mesh;
     samd.signature = (Vector<double[]>)Utility.deepCopy(signature);
     
@@ -32,7 +32,7 @@ public class MeshDescriptor_SurfaceArea extends MeshSignature
 	}
 	
   /**
-   * Construct the descriptor from the given model.
+   * Construct the signature from the given model.
    *  @param m the 3D model
    */
 	public void setSignature(Mesh m)

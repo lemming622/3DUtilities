@@ -1,4 +1,4 @@
-package edu.ncsa.model.descriptors;
+package edu.ncsa.model.signatures;
 import edu.ncsa.model.*;
 import edu.ncsa.model.MeshAuxiliary.*;
 import edu.ncsa.image.*;
@@ -8,21 +8,21 @@ import edu.ncsa.utility.*;
 import java.util.*;
 
 /**
- * A spin image descriptor used to describe a 3D mesh [Johnson et al., PAMI 1999].
+ * A spin image signature used to describe a 3D mesh [Johnson et al., PAMI 1999].
  *  @author Kenton McHenry
  */
-public class MeshDescriptor_SpinImage extends MeshSignature
+public class MeshSignature_SpinImage extends MeshSignature
 {
   private int bins = 11;
   private int bins_half = bins / 2;
   private double scale_alpha;
   private double scale_beta;
   
-  public MeshDescriptor_SpinImage() {}
+  public MeshSignature_SpinImage() {}
   
   /**
-   * Get the type of mesh descriptor this is.
-   *  @return the type of mesh descriptor
+   * Get the type of mesh signature this is.
+   *  @return the type of mesh signature
    */
   public String getType()
   {
@@ -30,11 +30,11 @@ public class MeshDescriptor_SpinImage extends MeshSignature
   }
   
   /**
-   * Clone this descriptor.
+   * Clone this signature.
    */
-  public MeshDescriptor_SpinImage clone()
+  public MeshSignature_SpinImage clone()
   {
-  	MeshDescriptor_SpinImage simd = new MeshDescriptor_SpinImage();
+  	MeshSignature_SpinImage simd = new MeshSignature_SpinImage();
     simd.mesh = mesh;
     simd.signature = (Vector<double[]>)Utility.deepCopy(signature);
   	simd.bins = bins;
@@ -46,7 +46,7 @@ public class MeshDescriptor_SpinImage extends MeshSignature
   }
   
   /**
-   * Construct the descriptor from the given model.
+   * Construct the signature from the given model.
    *  @param m the 3D model
    */
   public void setSignature(Mesh m)
@@ -111,7 +111,7 @@ public class MeshDescriptor_SpinImage extends MeshSignature
     
     if(false){	//View results
 	    ImageViewer.show(spin_images, bins, bins, "Spin Images [" + mesh.getMetaData("Name") + "]");
-	    ImageViewer.show(signature, bins, bins, "Descriptor [" + mesh.getMetaData("Name") + "]");
+	    ImageViewer.show(signature, bins, bins, "Signature [" + mesh.getMetaData("Name") + "]");
     }
   }
 }
