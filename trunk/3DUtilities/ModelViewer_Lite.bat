@@ -1,0 +1,1 @@
+java -cp lib/jogl-1.1.1/jogl.jar;lib/jogl-1.1.1/gluegen-rt.jar;lib/loaders/xj3D-1.0/xj3d-all.jar;lib/loaders/portfolio/portfolio.jar;lib/loaders/j3d-1.5.2/j3dcore.jar;lib/loaders/j3d-1.5.2/j3dutils.jar;build/ModelViewer_Lite.jar -Djava.library.path=lib/jogl-1.1.1;lib/loaders/j3d-1.5.2 -Xmx1024m edu.ncsa.model.ModelViewer

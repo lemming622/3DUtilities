@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="3DUtilities" default="archive">
+	<property name="classes" location="build/classes"/>
+	<property name="tmp" location="build/tmp"/>
+	<property name="javadocs" location="build/javadocs"/>
+
+	<path id="classpath">
+		<fileset dir="lib">
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+	
+	<target name="compile" description="Compiles the Java source code">
+		<mkdir dir="${classes}"/>
+		<javac srcdir="src" destdir="${classes}" classpathref="classpath"/>
+	</target>
+	
+	<target name="archive" depends="compile" description="Creates the JAR file">
+		<jar basedir="${classes}" destfile="build/3DUtilities.jar"/>
+	</target>	
+	
+	<target name="core" depends="compile" description="Archive the core code needed for the 3D utilities">
+		<mkdir dir="${tmp}"/>
+		<copy todir="${tmp}">
+			<fileset dir="${classes}">
+				<exclude name="**/Mesh.class"/>
+				<include name="**/*.class"/>
+				<include name="**/AnimatedMesh.class"/>
+			</fileset>
+		</copy>
+		<jar basedir="${tmp}" destfile="build/3DUtilities_Core.jar"/>
+	</target>
+	
+	<target name="modelviewer_lite" depends="compile" description="Archive the code needed for a lite version of the model viewer">
+		<mkdir dir="${tmp}"/>
+		<copy todir="${tmp}">
+			<fileset dir="${classes}">
+				<include name="**/ModelViewer.class"/>
+				<include name="**/ModelViewerApplet.class"/>
+				<include name="**/Mesh*.class"/>
+				<include name="**/AnimatedMesh*.class"/>
+				<include name="**/RayTracer*.class"/>
+				<include name="**/MeshLoader_OBJ.class"/>
+			</fileset>
+		</copy>
+		<unjar src="lib/ncsa/ImageUtilities.jar" dest="${tmp}"/>
+		<unjar src="lib/ncsa/MatrixUtilities.jar" dest="${tmp}"/>
+		<unjar src="lib/ncsa/Utilities.jar" dest="${tmp}"/>
+		<jar basedir="${tmp}" destfile="build/ModelViewer_Lite.jar"/>
+	</target>
+	
+	<target name="installer" depends="archive,javadocs,modelviewer_lite" description="Build an installer for this project">
+		<exec executable="C:/Program Files/Inno Setup 5/Compil32">
+			<arg value="/cc"/>
+			<arg value="3DUtilities.iss"/>
+		</exec>
+	</target>
+	
+	<target name="javadocs" description="Make javadocs">
+		<mkdir dir="${javadocs}"/>
+		<javadoc sourcepath="src" destdir="${javadocs}" packagenames="edu.ncsa.model.*" classpathref="classpath"/>
+	</target>
+	
+	<target name="clean" description="Deletes all generated files">
+		<delete dir="build"/>
+	</target>
+</project>

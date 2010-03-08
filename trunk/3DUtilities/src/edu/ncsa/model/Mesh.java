@@ -1801,7 +1801,7 @@ public class Mesh
    *  @param camera the camera
    *  @param scl the scaling factor for the cameras
    *  @param c0 the starting color of the gradient for the camera
-   *  @parma c1 the ending color of the gradient for the camera
+   *  @param c1 the ending color of the gradient for the camera
    */
   public void addCamera(Camera camera, double scl, Color c0, Color c1)
   {
@@ -1897,7 +1897,7 @@ public class Mesh
    *  @param cameras the camera external parameters!
    *  @param scl the scaling factor for the cameras
    *  @param c0 the starting color of the gradient for the camera
-   *  @parma c1 the ending color of the gradient for the camera
+   *  @param c1 the ending color of the gradient for the camera
    */
   public void addCameras(Vector<Camera> cameras, double scl, Color c0, Color c1)
   {

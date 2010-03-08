@@ -360,7 +360,7 @@ public class MeshAuxiliary
     
     /**
      * Determine if this point is within the given planar polygon (note: ignores z-coordinate).
-     *  @author Randolph Franklin, http://local.wasp.uwa.edu.au/~pbourke/geometry/insidepoly/
+     * Author: Randolph Franklin, http://local.wasp.uwa.edu.au/~pbourke/geometry/insidepoly/
      *  @param p the polygon
      *  @return true if the point is inside the polygon
      */
@@ -383,7 +383,7 @@ public class MeshAuxiliary
     
     /**
      * Determine if this point is within the face represented by the given three vertices.
-     *  @author Randolph Franklin, http://local.wasp.uwa.edu.au/~pbourke/geometry/insidepoly/
+     * Author: Randolph Franklin, http://local.wasp.uwa.edu.au/~pbourke/geometry/insidepoly/
      *  @param va a vertex on the face
      *  @param vb a vertex on the face
      *  @param vc a vertex on the face
@@ -2082,7 +2082,7 @@ public class MeshAuxiliary
     /**
      * Scale/translate this polygon.
      * @param sx the scaling factor in the x direction
-     * @param xy the scaling factor in the y direction
+     * @param sy the scaling factor in the y direction
      * @param tx the x-coordinate translation
      * @param ty the y-coordinate translation
      * @return the translated polygon
