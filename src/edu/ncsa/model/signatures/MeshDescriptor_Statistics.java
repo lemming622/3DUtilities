@@ -8,7 +8,7 @@ import java.util.*;
  * A descriptor used to describe a 3D mesh based on its vertex statistics.
  *  @author Kenton McHenry
  */
-public class MeshDescriptor_Statistics extends MeshDescriptor
+public class MeshDescriptor_Statistics extends MeshSignature
 {
   /**
    * Get the type of mesh descriptor this is.
@@ -26,7 +26,7 @@ public class MeshDescriptor_Statistics extends MeshDescriptor
 	{
   	MeshDescriptor_Statistics smd = new MeshDescriptor_Statistics();
     smd.mesh = mesh;
-    smd.descriptor = (Vector<double[]>)Utility.deepCopy(descriptor);
+    smd.signature = (Vector<double[]>)Utility.deepCopy(signature);
     
     return smd;
 	}
@@ -35,7 +35,7 @@ public class MeshDescriptor_Statistics extends MeshDescriptor
    * Construct the descriptor from the given model.
    *  @param m the 3D model
    */
-	public void setDescriptor(Mesh m)
+	public void setSignature(Mesh m)
 	{
 		mesh = m;
 		
@@ -75,7 +75,7 @@ public class MeshDescriptor_Statistics extends MeshDescriptor
 		std_y /= vertices.size();
 		std_z /= vertices.size();
 		
-		descriptor.clear();
-		descriptor.add(new double[]{mean_x, mean_y, mean_z, std_x, std_y, std_z});
+		signature.clear();
+		signature.add(new double[]{mean_x, mean_y, mean_z, std_x, std_y, std_z});
 	}
 }

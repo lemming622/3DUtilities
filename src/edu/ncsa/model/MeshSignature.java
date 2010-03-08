@@ -4,22 +4,22 @@ import java.io.*;
 import java.util.*;
 
 /**
- * The interface for mesh descriptors used to describe and compare 3D models.
+ * The interface for mesh signatures used to describe and compare 3D models.
  *  @author Kenton McHenry
  */
-abstract public class MeshDescriptor
+abstract public class MeshSignature
 {
   protected Mesh mesh;
-  protected Vector<double[]> descriptor = new Vector<double[]>();
+  protected Vector<double[]> signature = new Vector<double[]>();
   
-  public MeshDescriptor() {}
+  public MeshSignature() {}
   
   abstract public String getType();
-  abstract public MeshDescriptor clone();
-  abstract public void setDescriptor(Mesh m);
+  abstract public MeshSignature clone();
+  abstract public void setSignature(Mesh m);
   
   /**
-   * Save the descriptor to a file.
+   * Save the signature to a file.
    *  @param filename the file to save to
    */
   public void save(String filename)
@@ -27,9 +27,9 @@ abstract public class MeshDescriptor
     try{
       BufferedWriter outs = new BufferedWriter(new FileWriter(filename));
       
-      for(int i=0; i<descriptor.size(); i++){
-        for(int j=0; j<descriptor.get(i).length; j++){
-          outs.write(descriptor.get(i)[j] + " ");
+      for(int i=0; i<signature.size(); i++){
+        for(int j=0; j<signature.get(i).length; j++){
+          outs.write(signature.get(i)[j] + " ");
         }
         
         outs.newLine();       
@@ -40,7 +40,7 @@ abstract public class MeshDescriptor
   }
   
   /**
-   * Load the descriptor from a file.
+   * Load the signature from a file.
    *  @param filename the file to load from
    */
   public void load(String filename)
@@ -53,7 +53,7 @@ abstract public class MeshDescriptor
       int d = 0;
       int i;
       
-      descriptor.clear();
+      signature.clear();
             
       //Read file once to determine dimension
       ins = new BufferedReader(new InputStreamReader(new FileInputStream(filename)));
@@ -82,7 +82,7 @@ abstract public class MeshDescriptor
 	          arr[i++] = sc.nextDouble();
 	        }
 	        
-	        descriptor.add(arr);
+	        signature.add(arr);
 	      }
 	      
 	      ins.close();
@@ -93,48 +93,48 @@ abstract public class MeshDescriptor
   }
   
   /**
-   * Compare the model from which this descriptor is derived to another descriptor from another model.
-   *  @param md another mesh descriptor
-   *  @return the difference in models based on the descriptor (larger values indicate more different models)
+   * Compare the model from which this signature is derived to another signature from another model.
+   *  @param md another mesh signature
+   *  @return the difference in models based on the signature (larger values indicate more different models)
    */
-  public double compareTo(MeshDescriptor md)
+  public double compareTo(MeshSignature md)
   {
     double tmpd = 0;
     
-    for(int i=0; i<descriptor.size(); i++){
-      tmpd += MatrixUtility.distance(descriptor.get(i), md.descriptor.get(i));
+    for(int i=0; i<signature.size(); i++){
+      tmpd += MatrixUtility.distance(signature.get(i), md.signature.get(i));
     }
     
     return tmpd;
   }
   
   /**
-   * Get the magnitude of this descriptor (treating it like one long vector).
+   * Get the magnitude of this signature (treating it like one long vector).
    */
   public double magnitude()
   {
     double tmpd = 0;
     
-    for(int i=0; i<descriptor.size(); i++){
-      tmpd += MatrixUtility.distance(descriptor.get(i), new double[descriptor.get(i).length]);
+    for(int i=0; i<signature.size(); i++){
+      tmpd += MatrixUtility.distance(signature.get(i), new double[signature.get(i).length]);
     }
     
     return tmpd;
   }
   
   /**
-   * Get a string representation of this descriptor.
+   * Get a string representation of this signature.
    */
   public String toString()
   {
   	String str = "";
   	
-  	for(int i=0; i<descriptor.size(); i++){
+  	for(int i=0; i<signature.size(); i++){
   	  str += "[" + i + "]: ";
   	  
-  	  for(int j=0; j<descriptor.get(i).length; j++){
-  	  	str += descriptor.get(i)[j];
-  	  	if(j < descriptor.get(i).length-1) str += ", ";
+  	  for(int j=0; j<signature.get(i).length; j++){
+  	  	str += signature.get(i)[j];
+  	  	if(j < signature.get(i).length-1) str += ", ";
   	  }
   	  
   	  str += "\n";

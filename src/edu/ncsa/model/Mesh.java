@@ -43,7 +43,7 @@ public class Mesh
   private Vector<Point> PC = null;  
   
   private Class Descriptor = null;
-  private MeshDescriptor descriptor = null;
+  private MeshSignature descriptor = null;
   private TreeMap<String,Vector<Integer>> groups = new TreeMap<String,Vector<Integer>>();
   protected TreeMap<String,String> metadata = new TreeMap<String,String>();   
   private static Vector<MeshLoader> loaders = null;
@@ -1909,7 +1909,7 @@ public class Mesh
   /**
    * Get the mesh descriptor.
    */
-  public MeshDescriptor getDescriptor()
+  public MeshSignature getDescriptor()
   {
   	return descriptor;
   }
@@ -1923,8 +1923,8 @@ public class Mesh
   	this.Descriptor = Descriptor;
   	
   	try{
-	  	descriptor = (MeshDescriptor)Descriptor.newInstance();
-	    descriptor.setDescriptor(this);
+	  	descriptor = (MeshSignature)Descriptor.newInstance();
+	    descriptor.setSignature(this);
   	}catch(Exception e){
   		e.printStackTrace();
   	}
@@ -1942,10 +1942,10 @@ public class Mesh
     REBUILD = !Utility.exists(filename) || REBUILD;
     
   	try{
-	  	descriptor = (MeshDescriptor)Descriptor.newInstance();
+	  	descriptor = (MeshSignature)Descriptor.newInstance();
 
 	    if(REBUILD){
-	      descriptor.setDescriptor(this);
+	      descriptor.setSignature(this);
 	      
 	      if(filename != null){
 	        descriptor.save(filename);
