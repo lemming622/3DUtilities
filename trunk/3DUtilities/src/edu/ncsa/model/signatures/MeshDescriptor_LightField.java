@@ -9,7 +9,7 @@ import java.util.*;
  * A descriptor used to describe a 3D mesh based on lightfields [Chen et al., 2003].
  *  @author Kenton McHenry
  */
-public class MeshDescriptor_LightField extends MeshDescriptor
+public class MeshDescriptor_LightField extends MeshSignature
 {
   /**
    * Get the type of mesh descriptor this is.
@@ -27,7 +27,7 @@ public class MeshDescriptor_LightField extends MeshDescriptor
 	{
   	MeshDescriptor_LightField lfmd = new MeshDescriptor_LightField();
     lfmd.mesh = mesh;
-    lfmd.descriptor = (Vector<double[]>)Utility.deepCopy(descriptor);
+    lfmd.signature = (Vector<double[]>)Utility.deepCopy(signature);
     
     return lfmd;
 	}
@@ -36,7 +36,7 @@ public class MeshDescriptor_LightField extends MeshDescriptor
    * Construct the descriptor from the given model.
    *  @param m the 3D model
    */
-	public void setDescriptor(Mesh m)
+	public void setSignature(Mesh m)
 	{
 		mesh = m;
 		
@@ -125,10 +125,10 @@ public class MeshDescriptor_LightField extends MeshDescriptor
 		side_g = ImageUtility.g2bw(side_g, w, h, 0.5);
 		top_g = ImageUtility.g2bw(top_g, w, h, 0.5);
 		
-		descriptor.clear();
-		descriptor.add(front_g);
-		descriptor.add(side_g);
-		descriptor.add(top_g);
+		signature.clear();
+		signature.add(front_g);
+		signature.add(side_g);
+		signature.add(top_g);
 		
 		//View the lightfields
 		if(false){

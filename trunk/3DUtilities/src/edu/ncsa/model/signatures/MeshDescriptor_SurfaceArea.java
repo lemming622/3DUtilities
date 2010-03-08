@@ -8,7 +8,7 @@ import java.util.*;
  * A descriptor used to describe a 3D mesh based on its surface area.
  *  @author Kenton McHenry
  */
-public class MeshDescriptor_SurfaceArea extends MeshDescriptor
+public class MeshDescriptor_SurfaceArea extends MeshSignature
 {
   /**
    * Get the type of mesh descriptor this is.
@@ -26,7 +26,7 @@ public class MeshDescriptor_SurfaceArea extends MeshDescriptor
 	{
   	MeshDescriptor_SurfaceArea samd = new MeshDescriptor_SurfaceArea();
     samd.mesh = mesh;
-    samd.descriptor = (Vector<double[]>)Utility.deepCopy(descriptor);
+    samd.signature = (Vector<double[]>)Utility.deepCopy(signature);
     
     return samd;
 	}
@@ -35,7 +35,7 @@ public class MeshDescriptor_SurfaceArea extends MeshDescriptor
    * Construct the descriptor from the given model.
    *  @param m the 3D model
    */
-	public void setDescriptor(Mesh m)
+	public void setSignature(Mesh m)
 	{
 		mesh = m;
 		
@@ -52,7 +52,7 @@ public class MeshDescriptor_SurfaceArea extends MeshDescriptor
 			}
 		}
 		
-		descriptor.clear();
-		descriptor.add(new double[]{area});
+		signature.clear();
+		signature.add(new double[]{area});
 	}
 }

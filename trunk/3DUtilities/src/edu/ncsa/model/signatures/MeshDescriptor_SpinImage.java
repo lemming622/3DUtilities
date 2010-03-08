@@ -11,7 +11,7 @@ import java.util.*;
  * A spin image descriptor used to describe a 3D mesh [Johnson et al., PAMI 1999].
  *  @author Kenton McHenry
  */
-public class MeshDescriptor_SpinImage extends MeshDescriptor
+public class MeshDescriptor_SpinImage extends MeshSignature
 {
   private int bins = 11;
   private int bins_half = bins / 2;
@@ -36,7 +36,7 @@ public class MeshDescriptor_SpinImage extends MeshDescriptor
   {
   	MeshDescriptor_SpinImage simd = new MeshDescriptor_SpinImage();
     simd.mesh = mesh;
-    simd.descriptor = (Vector<double[]>)Utility.deepCopy(descriptor);
+    simd.signature = (Vector<double[]>)Utility.deepCopy(signature);
   	simd.bins = bins;
   	simd.bins_half = bins_half;
   	simd.scale_alpha = scale_alpha;
@@ -49,7 +49,7 @@ public class MeshDescriptor_SpinImage extends MeshDescriptor
    * Construct the descriptor from the given model.
    *  @param m the 3D model
    */
-  public void setDescriptor(Mesh m)
+  public void setSignature(Mesh m)
   {
     mesh = m;
     scale_alpha = ((double)(bins-1)) / (2.0*mesh.getRadius());
@@ -107,11 +107,11 @@ public class MeshDescriptor_SpinImage extends MeshDescriptor
     
     //Cluster spin images
     Vector<Vector<double[]>> CX = KMeans.cluster(1, spin_images, 5);
-    KMeans.getData(CX, descriptor, null, null);
+    KMeans.getData(CX, signature, null, null);
     
     if(false){	//View results
 	    ImageViewer.show(spin_images, bins, bins, "Spin Images [" + mesh.getMetaData("Name") + "]");
-	    ImageViewer.show(descriptor, bins, bins, "Descriptor [" + mesh.getMetaData("Name") + "]");
+	    ImageViewer.show(signature, bins, bins, "Descriptor [" + mesh.getMetaData("Name") + "]");
     }
   }
 }
