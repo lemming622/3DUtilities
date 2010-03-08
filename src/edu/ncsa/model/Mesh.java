@@ -42,8 +42,8 @@ public class Mesh
   protected double radius;
   private Vector<Point> PC = null;  
   
-  private Class Descriptor = null;
-  private MeshSignature descriptor = null;
+  private Class Signature = null;
+  private MeshSignature signature = null;
   private TreeMap<String,Vector<Integer>> groups = new TreeMap<String,Vector<Integer>>();
   protected TreeMap<String,String> metadata = new TreeMap<String,String>();   
   private static Vector<MeshLoader> loaders = null;
@@ -133,8 +133,8 @@ public class Mesh
    */
   public double compareTo(Mesh mesh)
   {
-  	if(descriptor != null){
-  		return descriptor.compareTo(mesh.descriptor);
+  	if(signature != null){
+  		return signature.compareTo(mesh.signature);
   	}else{
   		return -1;
   	}
@@ -1181,12 +1181,12 @@ public class Mesh
     radius = m.radius;
     if(m.PC != null) PC = (Vector<Point>)Utility.deepCopy(m.PC);
     
-    Descriptor = m.Descriptor;
+    Signature = m.Signature;
     
-    if(m.descriptor != null){
-    	descriptor = m.descriptor.clone();
+    if(m.signature != null){
+    	signature = m.signature.clone();
     }else{
-    	descriptor = null;
+    	signature = null;
     }
   
     groups = (TreeMap<String,Vector<Integer>>)Utility.deepCopy(m.groups);
@@ -1225,8 +1225,8 @@ public class Mesh
     radius = m.radius;
     PC = m.PC; m.PC = null;    
     
-    Descriptor = m.Descriptor; m.Descriptor = null;
-    descriptor = m.descriptor; m.descriptor = null;
+    Signature = m.Signature; m.Signature = null;
+    signature = m.signature; m.signature = null;
     groups = m.groups; m.groups = new TreeMap<String,Vector<Integer>>();
     metadata = m.metadata; m.metadata = new TreeMap<String,String>();
   }
@@ -1907,51 +1907,51 @@ public class Mesh
   }
   
   /**
-   * Get the mesh descriptor.
+   * Get the mesh signature.
    */
-  public MeshSignature getDescriptor()
+  public MeshSignature getSignature()
   {
-  	return descriptor;
+  	return signature;
   }
   
   /**
-   * Compute a descriptor that can be used to compare 3D models.
-   *  @param Descriptor the type of desciptor to use
+   * Compute a signature that can be used to compare 3D models.
+   *  @param Signature the type of signature to use
    */
-  public void setDescriptor(Class Descriptor)
+  public void setSignature(Class Signature)
   {
-  	this.Descriptor = Descriptor;
+  	this.Signature = Signature;
   	
   	try{
-	  	descriptor = (MeshSignature)Descriptor.newInstance();
-	    descriptor.setSignature(this);
+	  	signature = (MeshSignature)Signature.newInstance();
+	    signature.setSignature(this);
   	}catch(Exception e){
   		e.printStackTrace();
   	}
   }
   
   /**
-   * Compute a descriptor that can be used to compare 3D models.
-   *  @param Descriptor the type of desciptor to use
-   *  @param filename the file where the descriptor will be stored
-   *  @param REBUILD true if we rebuild the descriptor whether or not it already exists
+   * Compute a signature that can be used to compare 3D models.
+   *  @param Signature the type of signature to use
+   *  @param filename the file where the signature will be stored
+   *  @param REBUILD true if we rebuild the signature whether or not it already exists
    */
-  public void setDescriptor(Class Descriptor, String filename, boolean REBUILD)
+  public void setSignature(Class Signature, String filename, boolean REBUILD)
   {
-  	this.Descriptor = Descriptor;
+  	this.Signature = Signature;
     REBUILD = !Utility.exists(filename) || REBUILD;
     
   	try{
-	  	descriptor = (MeshSignature)Descriptor.newInstance();
+	  	signature = (MeshSignature)Signature.newInstance();
 
 	    if(REBUILD){
-	      descriptor.setSignature(this);
+	      signature.setSignature(this);
 	      
 	      if(filename != null){
-	        descriptor.save(filename);
+	        signature.save(filename);
 	      }
 	    }else{
-	      descriptor.load(filename);
+	      signature.load(filename);
 	    }
   	}catch(Exception e){
   		e.printStackTrace();

@@ -93,7 +93,7 @@ public class ModelBrowserAuxiliary
       //Determine if this is a convertable 3D model
       for(int i=0; i<convertable_formats.size(); i++){
         if(extension.equals(convertable_formats.get(i))){
-          converted_filename = "." + filename + "." + converted_format;          
+          converted_filename = filename + "." + converted_format;          
           convert_button = new JButton("Convert");
           convert_button.setMargin(new Insets(0, 0, 0, 0));
           CONVERTABLE = true;

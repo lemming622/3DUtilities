@@ -1,4 +1,4 @@
-package edu.ncsa.model.descriptors;
+package edu.ncsa.model.signatures;
 import edu.ncsa.model.*;
 import edu.ncsa.model.MeshAuxiliary.*;
 import edu.ncsa.image.*;
@@ -6,14 +6,14 @@ import edu.ncsa.utility.*;
 import java.util.*;
 
 /**
- * A descriptor used to describe a 3D mesh based on lightfields [Chen et al., 2003].
+ * A signature used to describe a 3D mesh based on lightfields [Chen et al., 2003].
  *  @author Kenton McHenry
  */
-public class MeshDescriptor_LightField extends MeshSignature
+public class MeshSignature_LightField extends MeshSignature
 {
   /**
-   * Get the type of mesh descriptor this is.
-   *  @return the type of mesh descriptor
+   * Get the type of mesh signature this is.
+   *  @return the type of mesh signature
    */
   public String getType()
   {
@@ -21,11 +21,11 @@ public class MeshDescriptor_LightField extends MeshSignature
   }
   
   /**
-   * Clone this descriptor.
+   * Clone this signature.
    */
-	public MeshDescriptor_LightField clone()
+	public MeshSignature_LightField clone()
 	{
-  	MeshDescriptor_LightField lfmd = new MeshDescriptor_LightField();
+  	MeshSignature_LightField lfmd = new MeshSignature_LightField();
     lfmd.mesh = mesh;
     lfmd.signature = (Vector<double[]>)Utility.deepCopy(signature);
     
@@ -33,7 +33,7 @@ public class MeshDescriptor_LightField extends MeshSignature
 	}
 	
   /**
-   * Construct the descriptor from the given model.
+   * Construct the signature from the given model.
    *  @param m the 3D model
    */
 	public void setSignature(Mesh m)
@@ -116,7 +116,7 @@ public class MeshDescriptor_LightField extends MeshSignature
 			}
 		}
 		
-		//Set the descriptor
+		//Set the signature
 		front_g = ImageUtility.argb2g(front, w, h);
 		side_g = ImageUtility.argb2g(side, w, h);
 		top_g = ImageUtility.argb2g(top, w, h);

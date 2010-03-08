@@ -36,7 +36,7 @@ abstract public class MeshSignature
       }
       
       outs.close();
-    }catch(Exception e) {}
+    }catch(Exception e) {e.printStackTrace();}
   }
   
   /**

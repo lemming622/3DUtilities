@@ -30,7 +30,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   public double[][] rotation_last = MatrixUtility.eye(4);
   public double[][] rotation_last_inv = null;
   public RigidTransformation transformation = new RigidTransformation();
-  private Class Descriptor = null;
+  private Class Signature = null;
   private int list_id = 0;
   
 	private Vector<Mesh> added_meshes = new Vector<Mesh>();
@@ -145,7 +145,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   private boolean HIGHLIGHTS = false;
   private boolean ILLUSTRATION = false;
   private boolean METAL = false;
-  private boolean REBUILD_DESCRIPTORS = false;
+  private boolean REBUILD_SIGNATURES = false;
   private boolean RAYTRACE = false;
   public boolean AUTO_REFRESH = false;
   private boolean ANTI_ALIASING = true;
@@ -292,10 +292,10 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
           if(key.charAt(0) != '#'){
             if(key.equals("Adjust")){
               ADJUST = Boolean.valueOf(value);
-            }else if(key.equals("Descriptor")){
-              Descriptor = Class.forName(value);
-            }else if(key.equals("RebuildDescriptors")){
-              REBUILD_DESCRIPTORS = Boolean.valueOf(value);
+            }else if(key.equals("Signature")){
+              Signature = Class.forName(value);
+            }else if(key.equals("RebuildSignatures")){
+              REBUILD_SIGNATURES = Boolean.valueOf(value);
             }else if(key.equals("DefaultModel")){
               if(LOAD_DEFAULT){
               	load(value);
@@ -652,7 +652,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   
   	this.mesh = mesh;
     
-    if(Descriptor != null) mesh.setDescriptor(Descriptor, metadata_path + "." + mesh.getMetaData("Name") + ".txt", REBUILD_DESCRIPTORS); 
+    if(Signature != null) mesh.setSignature(Signature, metadata_path + mesh.getMetaData("Name") + ".signature", REBUILD_SIGNATURES); 
     if(ADJUST) mesh.center(0.8f*((width<height)?width:height)/2.0f);
     
     //If no faces then display points
