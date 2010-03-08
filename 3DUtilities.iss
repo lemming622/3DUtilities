@@ -10,12 +10,12 @@ DefaultDirName={userdesktop}\3DFu
 DefaultGroupName=3DFu
 Compression=lzma
 SolidCompression=yes
-OutputDir=tmp\snapshot
+OutputDir=build
 OutputBaseFilename=3DFu
 
 [Files]
-Source: "tmp\snapshot\ModelBrowser.jar"; DestDir: "{app}"; Flags: ignoreversion
-Source: "tmp\snapshot\ModelViewerLite.jar"; DestDir: "{app}"; Flags: ignoreversion
+Source: "build\3DUtilities.jar"; DestDir: "{app}"; Flags: ignoreversion
+Source: "build\ModelViewer_Lite.jar"; DestDir: "{app}"; Flags: ignoreversion
 Source: "ModelBrowser_cwd.ini.txt"; DestDir: "{app}"; DestName: "ModelBrowser.ini"; Flags: ignoreversion
 Source: "ModelViewer_cwd.ini.txt"; DestDir: "{app}"; DestName: "ModelViewer.ini"; Flags: ignoreversion
 Source: "ModelBrowser_cwd.bat.txt"; DestDir: "{app}"; DestName: "ModelBrowser.bat"; Flags: ignoreversion
@@ -24,7 +24,7 @@ Source: "polyglotDomain_OBJ.txt"; DestDir: "{app}"; Flags: ignoreversion
 Source: "ModelViewer.php"; DestDir: "{app}"; Flags: ignoreversion
 Source: "logos\*"; DestDir: "{app}\logos"; Flags: ignoreversion recursesubdirs
 Source: "lib\*"; DestDir: "{app}\lib"; Flags: ignoreversion recursesubdirs
-Source: "doc\*"; DestDir: "{app}\doc"; Flags: ignoreversion recursesubdirs
+Source: "build\javadocs\*"; DestDir: "{app}\doc"; Flags: ignoreversion recursesubdirs
 
 [Dirs]
 Name: "{app}/data/Models"

@@ -115,7 +115,7 @@ public class AnimatedMesh extends Mesh
   
   /**
    * Get the animation length.
-   * @return
+   * @return the length of the animation
    */
   public double length()
   {
