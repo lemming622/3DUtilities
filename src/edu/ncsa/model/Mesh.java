@@ -68,7 +68,7 @@ public class Mesh
 	  	try{loaders.add(new MeshLoader_OBJ());}catch(Throwable t) {}
 	  	try{loaders.add(new MeshLoader_PLY());}catch(Throwable t) {}
 	  	try{loaders.add(new MeshLoader_WRL());}catch(Throwable t) {}
-	  	//try{loaders.add(new MeshLoader_STP());}catch(Throwable t) {}
+	  	try{loaders.add(new MeshLoader_STP());}catch(Throwable t) {}
 	  	try{loaders.add(new MeshLoader_VH());}catch(Throwable t) {}
 	  	try{loaders.add(new MeshLoader_DAE());}catch(Throwable t) {}
 	  	//try{loaders.add(new MeshLoader_DWG());}catch(Throwable t) {}

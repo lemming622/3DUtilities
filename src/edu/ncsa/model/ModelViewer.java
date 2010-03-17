@@ -1020,7 +1020,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     //Create a directory for the data
     new File(path).mkdir();
     
-    //Search the directory for the next availabe view index
+    //Search the directory for the next available view index
     while(true){
       filename = path + "/" + Utility.toString(index, 2) + ".txt";
       
@@ -1032,6 +1032,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     }
     
     //Save view data
+    //System.out.println(MatrixUtility.toString(projection));
     System.out.println(MatrixUtility.toString(K));
     System.out.println(MatrixUtility.toString(RT));
     
