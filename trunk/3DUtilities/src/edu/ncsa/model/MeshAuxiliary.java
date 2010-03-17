@@ -5199,6 +5199,7 @@ public class MeshAuxiliary
   
   /**
    * A main for debugging purposes.
+   * @param args command line arguments
    */
   public static void main(String args[])
   {
