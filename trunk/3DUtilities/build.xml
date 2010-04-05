@@ -19,7 +19,7 @@
 		<jar basedir="${classes}" destfile="build/3DUtilities.jar"/>
 	</target>	
 	
-	<target name="core" depends="compile" description="Archive the core code needed for the 3D utilities">
+	<target name="core_archive" depends="compile" description="Archive the core code needed for the 3D utilities">
 		<mkdir dir="${tmp}"/>
 		<copy todir="${tmp}">
 			<fileset dir="${classes}">
@@ -59,6 +59,10 @@
 	<target name="javadocs" description="Make javadocs">
 		<mkdir dir="${javadocs}"/>
 		<javadoc sourcepath="src" destdir="${javadocs}" packagenames="edu.ncsa.model.*" classpathref="classpath"/>
+	</target>
+	
+	<target name="clean_tmp" description="Deletes tmp folder">
+		<delete dir="build/tmp"/>
 	</target>
 	
 	<target name="clean" description="Deletes all generated files">
