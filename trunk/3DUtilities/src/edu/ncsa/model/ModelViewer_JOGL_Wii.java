@@ -6,7 +6,7 @@ import wiiusej.wiiusejevents.wiiuseapievents.*;
 import wiiusej.wiiusejevents.physicalevents.*;
 import wiiusej.wiiusejevents.utils.*;
 
-public class ModelViewerWii extends ModelViewer implements WiimoteListener
+public class ModelViewer_JOGL_Wii extends ModelViewer_JOGL implements WiimoteListener
 {
 	private Wiimote[] wiimotes = null;
 	private Wiimote wiimote = null;
@@ -16,7 +16,7 @@ public class ModelViewerWii extends ModelViewer implements WiimoteListener
 	/**
 	 * Class constructor.
 	 */
-	public ModelViewerWii() 
+	public ModelViewer_JOGL_Wii() 
 	{
 		super();
 		enableWiiMote();
@@ -27,7 +27,7 @@ public class ModelViewerWii extends ModelViewer implements WiimoteListener
    *  @param filename INI file name containing initialization values
    *  @param DISABLE_HEAVYWEIGHT disable heavyweight GLCanvas (sacrificing performance for functionality)
    */
-  public ModelViewerWii(String filename, boolean DISABLE_HEAVYWEIGHT)
+  public ModelViewer_JOGL_Wii(String filename, boolean DISABLE_HEAVYWEIGHT)
   {
     super(filename, DISABLE_HEAVYWEIGHT);
     enableWiiMote();
@@ -43,7 +43,7 @@ public class ModelViewerWii extends ModelViewer implements WiimoteListener
    *  @param DISABLE_HEAVYWEIGHT disable heavyweight GLCanvas (sacrificing performance for functionality)
    *  @param ld if false the viewer will not load the default model from the INI file
    */
-  public ModelViewerWii(String filename, int w, int h, boolean DISABLE_HEAVYWEIGHT, boolean ld)
+  public ModelViewer_JOGL_Wii(String filename, int w, int h, boolean DISABLE_HEAVYWEIGHT, boolean ld)
   {
   	super(filename, w, h, DISABLE_HEAVYWEIGHT, ld);
   	enableWiiMote();
@@ -155,7 +155,7 @@ public class ModelViewerWii extends ModelViewer implements WiimoteListener
    */
   public static void main(String args[])
   {  	
-    ModelViewerWii mv = new ModelViewerWii("ModelViewer.ini", false);
+    ModelViewer_JOGL_Wii mv = new ModelViewer_JOGL_Wii("ModelViewer.ini", false);
     JFrame frame = new JFrame("Model Viewer");
     frame.setSize(mv.width+9, mv.height+35);
     frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);

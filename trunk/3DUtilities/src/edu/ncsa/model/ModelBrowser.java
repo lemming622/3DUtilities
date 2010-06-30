@@ -37,7 +37,7 @@ public class ModelBrowser extends JPanel implements ActionListener, TreeSelectio
   private double radius = 0.75;          //For displaying multiple viewers
 
   private Class Viewer;
-  private Vector<ModelViewer> modelviewer = new Vector<ModelViewer>();
+  private Vector<ModelViewer_JOGL> modelviewer = new Vector<ModelViewer_JOGL>();
   private HTMLPanel outp = new HTMLPanel();
   private JFrame frame;
   private JSplitPane splitpane_lr;
@@ -111,20 +111,20 @@ public class ModelBrowser extends JPanel implements ActionListener, TreeSelectio
     //Setup initial viewer
     if(WIIMOTE){
 	    try{
-	    	new ModelViewerWii();
-	    	Viewer = ModelViewerWii.class;
+	    	new ModelViewer_JOGL_Wii();
+	    	Viewer = ModelViewer_JOGL_Wii.class;
 	    	System.out.println("WiiMote: enabled\n");
 	    }catch(Throwable t){
 	    	WIIMOTE = false;
-	    	Viewer = ModelViewer.class;
+	    	Viewer = ModelViewer_JOGL.class;
 	    	System.out.println("WiiMote: disabled\n");
 	    }
     }else{
-    	Viewer = ModelViewer.class;
+    	Viewer = ModelViewer_JOGL.class;
     }
     
     try{
-    	modelviewer.add((ModelViewer)Viewer.getDeclaredConstructor(String.class, int.class, int.class, boolean.class, boolean.class).newInstance("ModelViewer.ini", viewer_width, viewer_height, true, true));
+    	modelviewer.add((ModelViewer_JOGL)Viewer.getDeclaredConstructor(String.class, int.class, int.class, boolean.class, boolean.class).newInstance("ModelViewer.ini", viewer_width, viewer_height, true, true));
     }catch(Exception e){
     	e.printStackTrace();
     }
@@ -504,7 +504,7 @@ public class ModelBrowser extends JPanel implements ActionListener, TreeSelectio
 		    			thumb_image = "." + fileinfo.get(i).name + ".jpg";
 		    			
 		    			if(!Utility.exists(metadata_path + thumb_image) || REBUILD_THUMBS){
-			    			ModelViewer mv = new ModelViewer("ModelViewer.ini", 100, 100, false, false);
+			    			ModelViewer_JOGL mv = new ModelViewer_JOGL("ModelViewer.ini", 100, 100, false, false);
 			    			mv.load(fileinfo.get(i).absolutename);
 			    			mv.activate();
 			    			mv.save(metadata_path, thumb_image);
@@ -641,7 +641,7 @@ public class ModelBrowser extends JPanel implements ActionListener, TreeSelectio
     for(int i=0; i<new_models.size(); i++){  
       if(selected_models.size() > 1){
         try{
-        	modelviewer.add((ModelViewer)Viewer.getDeclaredConstructor(String.class, int.class, int.class, boolean.class, boolean.class).newInstance("ModelViewer.ini", viewer_smallwidth, viewer_smallheight, true, false));
+        	modelviewer.add((ModelViewer_JOGL)Viewer.getDeclaredConstructor(String.class, int.class, int.class, boolean.class, boolean.class).newInstance("ModelViewer.ini", viewer_smallwidth, viewer_smallheight, true, false));
         }catch(Exception ex) {}
 
         moveModel(modelviewer.size()-1, viewer_smallwidth, viewer_smallheight, viewer_halfwidth-viewer_halfsmallwidth, viewer_halfheight-viewer_halfsmallheight);
