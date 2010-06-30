@@ -5088,7 +5088,7 @@ public class MeshAuxiliary
 	  	mesh.initialize();
 
 	    //Display 3D results
-	    ModelViewer modelviewer = new ModelViewer("ModelViewer.ini", -1, -1, false, false);
+	    ModelViewer_JOGL modelviewer = new ModelViewer_JOGL("ModelViewer.ini", -1, -1, false, false);
 	    modelviewer.setMesh(mesh);
 	    modelviewer.enablePoints(true);
 

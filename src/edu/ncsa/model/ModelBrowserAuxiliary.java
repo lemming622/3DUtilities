@@ -43,7 +43,7 @@ public class ModelBrowserAuxiliary
     public String converted_filename = "";
     public String converted_format = "obj";
     public String thumb_image = null;
-    public ModelViewer modelviewer = null;
+    public ModelViewer_JOGL modelviewer = null;
     
     /**
      * Class constructor to initialize the file information.
