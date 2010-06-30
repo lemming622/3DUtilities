@@ -7,7 +7,7 @@ import javax.swing.*;
  */
 public class ModelViewerApplet extends JApplet
 {
-  private ModelViewer_JOGL modelviewer;
+  private ModelViewer modelviewer;
   int width = 0;
   int height = 0;
   
@@ -16,7 +16,7 @@ public class ModelViewerApplet extends JApplet
    */
   public void init()
   {
-    modelviewer = new ModelViewer_JOGL(null, false);
+    modelviewer = new ModelViewer(null, false);
     String filename = getParameter("filename");
     String path = "";
     String w = getParameter("width");

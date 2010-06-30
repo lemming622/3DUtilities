@@ -24,7 +24,7 @@ import javax.media.opengl.glu.*;
  * A panel that allows for the display and manipulation of 3D objects.
  *  @author Kenton McHenry
  */
-public class ModelViewer_JOGL extends JPanel implements Runnable, GLEventListener, KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, ActionListener
+public class ModelViewer extends JPanel implements Runnable, GLEventListener, KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, ActionListener
 {
   public Mesh mesh = new Mesh();
   public double[][] rotation_last = MatrixUtility.eye(4);
@@ -194,14 +194,14 @@ public class ModelViewer_JOGL extends JPanel implements Runnable, GLEventListene
 	private JColorChooser color_chooser = null;
 	private JFrame color_chooser_frame = null;
 	 
-  public ModelViewer_JOGL() {}
+  public ModelViewer() {}
   
   /**
    * Class Constroctur specifying the INI file to load.
    *  @param filename INI file name containing initialization values
    *  @param DISABLE_HEAVYWEIGHT disable heavyweight GLCanvas (sacrificing performance for functionality)
    */
-  public ModelViewer_JOGL(String filename, boolean DISABLE_HEAVYWEIGHT)
+  public ModelViewer(String filename, boolean DISABLE_HEAVYWEIGHT)
   {
     this(filename, 0, 0, DISABLE_HEAVYWEIGHT, true);
   }
@@ -216,7 +216,7 @@ public class ModelViewer_JOGL extends JPanel implements Runnable, GLEventListene
    *  @param DISABLE_HEAVYWEIGHT disable heavyweight GLCanvas (sacrificing performance for functionality)
    *  @param LOAD_DEFAULT if false the viewer will not load the default model from the INI file
    */
-  public ModelViewer_JOGL(String filename, int w, int h, boolean DISABLE_HEAVYWEIGHT, boolean LOAD_DEFAULT)
+  public ModelViewer(String filename, int w, int h, boolean DISABLE_HEAVYWEIGHT, boolean LOAD_DEFAULT)
   {
     if(w > 0 && h > 0){
       width = w;
@@ -2268,7 +2268,7 @@ public class ModelViewer_JOGL extends JPanel implements Runnable, GLEventListene
    */
   public static void main(String args[])
   {
-    ModelViewer_JOGL mv = new ModelViewer_JOGL("ModelViewer.ini", false);
+    ModelViewer mv = new ModelViewer("ModelViewer.ini", false);
     mv.AUTO_REFRESH = true;
     
     JFrame frame = new JFrame("Model Viewer");
