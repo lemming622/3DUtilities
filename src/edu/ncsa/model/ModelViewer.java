@@ -1,9 +1,11 @@
 package edu.ncsa.model;
 import edu.ncsa.model.Mesh.*;
-import edu.ncsa.model.MeshAuxiliary.Camera;
+import edu.ncsa.model.MeshAuxiliary.*;
+import edu.ncsa.model.MeshAuxiliary.Color;
 import edu.ncsa.model.MeshAuxiliary.RigidTransformation;
 import edu.ncsa.model.MeshAuxiliary.Point;
 import edu.ncsa.model.MeshAuxiliary.Face;
+import edu.ncsa.model.MeshAuxiliary.Texture;
 import edu.ncsa.model.MeshAuxiliary.Material;
 import edu.ncsa.image.*;
 import edu.ncsa.matrix.*;
@@ -194,6 +196,9 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 	private JColorChooser color_chooser = null;
 	private JFrame color_chooser_frame = null;
 	 
+  private DrawOption lighting = DrawOption.ENABLED;
+  private DrawOption texture = DrawOption.DECAL;
+  
   public ModelViewer() {}
   
   /**
@@ -238,7 +243,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     }
     
     //Setup panel and canvas
-    setBackground(Color.white);
+    setBackground(java.awt.Color.white);
     super.setSize(width, height);
     setLayout(null);
         	
@@ -679,17 +684,17 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   	if(menuitem_SHADED_LIGHTING_MATERIAL != null) menuitem_SHADED_LIGHTING_MATERIAL.setSelected(SHADED_LIGHTING_MATERIAL);
     	
   	if(!FOUND_COLORS){
-  		mesh.setLighting(DrawOption.ENABLED);
+  		lighting = DrawOption.ENABLED;
   	}else{
-  		mesh.setLighting(DrawOption.MATERIAL);
+  		lighting = DrawOption.MATERIAL;
   	}
   	
   	if(SHADED_TEXTURE_DECAL){
-  		mesh.setTexture(DrawOption.DECAL);
+  		texture = DrawOption.DECAL;
   	}else if(SHADED_TEXTURE_MODULATE){
-  		mesh.setTexture(DrawOption.MODULATE);
+  		texture = DrawOption.MODULATE;
   	}else{
-  		mesh.setTexture(DrawOption.DISABLED);
+  		texture = DrawOption.DISABLED;
   	}
     
     setPopupMenu();
@@ -765,22 +770,6 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
       dt = t1 - t0;	
       
       if(ADJUST) added_meshes.lastElement().center(0.8f*((width<height)?width:height)/2.0f);
-      
-    	if(SHADED_LIGHTING_ENABLED){
-    		added_meshes.lastElement().setLighting(DrawOption.ENABLED);
-    	}else if(SHADED_LIGHTING_MATERIAL){
-    		added_meshes.lastElement().setLighting(DrawOption.MATERIAL);
-    	}else{
-    		added_meshes.lastElement().setLighting(DrawOption.DISABLED);
-    	}
-    	
-    	if(SHADED_TEXTURE_DECAL){
-    		added_meshes.lastElement().setTexture(DrawOption.DECAL);
-    	}else if(SHADED_TEXTURE_MODULATE){
-    		added_meshes.lastElement().setTexture(DrawOption.MODULATE);
-    	}else{
-    		added_meshes.lastElement().setTexture(DrawOption.DISABLED);
-    	}
       
       setPopupMenu();
       refresh(true);
@@ -1211,30 +1200,30 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
       modelview_zeroT[2][3] = 0;
     }
     
-    if(PC_AXIS) mesh.drawPCs(gl, 0.1f*halfwidth);
+    if(PC_AXIS) drawPCs(gl, mesh, 0.1f*halfwidth);
     
-    if(POINTS) mesh.drawPoints(gl);
-    if(WIRE) mesh.drawEdges(gl);
-    if(OUTLINE) mesh.drawOutline(gl, modelview);
+    if(POINTS) drawPoints(gl, mesh);
+    if(WIRE) drawEdges(gl, mesh);
+    if(OUTLINE) drawOutline(gl, mesh, modelview);
     
     if(SOLID){
-      mesh.drawSolid(gl);
+      drawSolid(gl, mesh);
     }else if(SHADED){
       if(list_id == 0){   //Rebuild the list
         list_id = gl.glGenLists(1);
         
         gl.glNewList(list_id, GL.GL_COMPILE);
-        mesh.drawShaded(gl, SHADED_SMOOTH);
+        drawShaded(gl, mesh, SHADED_SMOOTH);
         gl.glEndList();
       }
       
       gl.glCallList(list_id);           
     }else if(HIGHLIGHTS){
-      mesh.drawHighlights(gl, modelview_zeroT);
+      drawHighlights(gl, mesh, modelview_zeroT);
     }else if(ILLUSTRATION){
-      mesh.drawIllustration(gl, modelview_zeroT);
+      drawIllustration(gl, mesh, modelview_zeroT);
     }else if(METAL){
-      mesh.drawMetal(gl, modelview_zeroT);
+      drawMetal(gl, mesh, modelview_zeroT);
     }
     
     if(RAYTRACE){
@@ -1254,7 +1243,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
       gl.glMultMatrixd(MatrixUtility.to1D(MatrixUtility.transpose(added_rotation_last.get(i))), 0); 	//Must transpose since OpenGL uses column major order!
       gl.glScaled(added_transformations.get(i).scl, added_transformations.get(i).scl, added_transformations.get(i).scl);
 
-      added_meshes.get(i).drawShaded(gl, SHADED_SMOOTH);
+      drawShaded(gl, added_meshes.get(i), SHADED_SMOOTH);
 
     	gl.glPopMatrix();
     }
@@ -1263,7 +1252,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     if(selected_vertices != null){
     	if(selected_vertex_faces != null){
       	gl.glColor3f(0, 0, 1);
-      	mesh.drawShadedFlat(gl, selected_vertex_faces);
+      	drawShadedFlat(gl, mesh, selected_vertex_faces);
     	}
     	      	
     	if(selected_component_faces!=null){
@@ -1276,7 +1265,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     			b = 0.5 + (random.nextFloat()-0.5)/4;
 
 	      	gl.glColor3d(r, g, b);
-	      	mesh.drawShadedFlat(gl, selected_component_faces.get(i));
+	      	drawShadedFlat(gl, mesh, selected_component_faces.get(i));
     		}
     	}
     }
@@ -1586,6 +1575,731 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   		rt.ty += t.y;
   		rt.tz += t.z;
   	}
+  }
+  
+  /**
+   * Bind any newly added textures.
+   *  @param FORCE set to true to force rebinding of textures
+   */
+  public void bindTextures(GL gl, Mesh mesh, boolean FORCE)
+  {
+  	Vector<Texture> textures;
+  	
+  	if(mesh.UNBOUND_TEXTURES || FORCE){
+  		textures = mesh.getTextures();
+  		
+  		for(int i=0; i<textures.size(); i++){
+  			if(textures.get(i).tid == -1 || FORCE){
+  				textures.get(i).tid = i;
+		  	  gl.glBindTexture(gl.GL_TEXTURE_2D, textures.get(i).tid);
+		  	  gl.glPixelStorei(gl.GL_UNPACK_ALIGNMENT, 1);
+		  	  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT);
+		  	  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT);
+		  	  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR);
+		  	  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR);
+		  	  
+		  	  if(texture == DrawOption.DECAL){
+		  	  	gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_DECAL);
+		  	  }else if(texture == DrawOption.MODULATE){
+		  	  	gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE);
+		  	  }
+		  	  
+		  	  gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGB, textures.get(i).w, textures.get(i).h, 0, gl.GL_RGB, gl.GL_UNSIGNED_BYTE, textures.get(i).buffer);
+  			}
+  		}
+  		
+  		mesh.UNBOUND_TEXTURES = false;
+  	}
+  }
+  
+  /**
+   * Draw the principal components of the currently loaded model.
+   *  @param gl the OpenGL context to render to
+   *  @param scl the scale of the axis representing the principle components
+   */
+  public void drawPCs(GL gl, Mesh mesh, float scl)
+  {
+  	Vector<Point> PC = mesh.getPC();
+  	Point center = mesh.getCenter();
+  	
+  	if(PC != null){
+	    gl.glDisable(GL.GL_LIGHTING);
+	    gl.glLineWidth(3);
+	    gl.glBegin(GL.GL_LINES);
+	    
+	    gl.glColor3f(1.0f, 0.0f, 0.0f);     
+	    gl.glVertex3f((float)center.x, (float)center.y, (float)center.z);
+	    gl.glVertex3f(scl*(float)PC.get(0).x, scl*(float)PC.get(0).y, scl*(float)PC.get(0).z);
+	    
+	    gl.glColor3f(0.0f, 1.0f, 0.0f);     
+	    gl.glVertex3f((float)center.x, (float)center.y, (float)center.z);
+	    gl.glVertex3f(scl*(float)PC.get(1).x, scl*(float)PC.get(1).y, scl*(float)PC.get(1).z);
+	    
+	    gl.glColor3f(0.0f, 0.0f, 1.0f);     
+	    gl.glVertex3f((float)center.x, (float)center.y, (float)center.z);
+	    gl.glVertex3f(scl*(float)PC.get(2).x, scl*(float)PC.get(2).y, scl*(float)PC.get(2).z);
+	    
+	    gl.glEnd();
+  	}
+  }
+  
+  /**
+   * Draw the models points.
+   *  @param gl the OpenGL context to render to
+   */
+  public void drawPoints(GL gl, Mesh mesh)
+  {
+  	Vector<Point> vertices = mesh.getVertices();
+  	Vector<Color> vertex_colors = mesh.getVertexColors();
+  	
+    gl.glDisable(GL.GL_LIGHTING);
+    gl.glPointSize(6);		//Default: 2
+    gl.glBegin(GL.GL_POINTS);
+    
+    if(vertex_colors.size() != vertices.size()){
+      gl.glColor3f(0.0f, 0.0f, 0.0f);
+      
+      for(int i=0; i<vertices.size(); i++){
+        gl.glVertex3f((float)vertices.get(i).x, (float)vertices.get(i).y, (float)vertices.get(i).z);
+      }
+    }else{
+      for(int i=0; i<vertices.size(); i++){
+        gl.glColor3f(vertex_colors.get(i).r, vertex_colors.get(i).g, vertex_colors.get(i).b);     
+        gl.glVertex3f((float)vertices.get(i).x, (float)vertices.get(i).y, (float)vertices.get(i).z);
+      }
+    }
+    
+    gl.glEnd();
+  }
+  
+  /**
+   * Draw the models edges.
+   *  @param gl the OpenGL context to render to
+   */
+  public void drawEdges(GL gl, Mesh mesh)
+  {
+  	Vector<Edge> edges = mesh.getEdges();
+  	Vector<Point> vertices = mesh.getVertices();
+  	
+    gl.glDisable(GL.GL_LIGHTING);
+    gl.glColor3f(0.0f, 0.0f, 0.0f); 
+    gl.glLineWidth(2);
+    gl.glBegin(GL.GL_LINES);
+    
+    for(int i=0; i<edges.size(); i++){
+      gl.glVertex3f((float)vertices.get(edges.get(i).v0).x, (float)vertices.get(edges.get(i).v0).y, (float)vertices.get(edges.get(i).v0).z);
+      gl.glVertex3f((float)vertices.get(edges.get(i).v1).x, (float)vertices.get(edges.get(i).v1).y, (float)vertices.get(edges.get(i).v1).z);
+    }
+    
+    gl.glEnd();
+  }
+  
+  /**
+   * Draw the occluding and critical edges of the model.
+   *  @param gl the OpenGL context to render to
+   *  @param M the current modelview matrix (stored elsewhere to prevent repeated extraction/conversion)
+   */
+  public void drawOutline(GL gl, Mesh mesh, double[][] M)
+  {
+  	Vector<Point> vertices = mesh.getVertices();
+  	Vector<Face> faces = mesh.getFaces();
+  	Vector<Boolean> faces_visible = mesh.getFacesVisible();
+  	Vector<Edge> edges = mesh.getEdges();
+  	Vector<Vector<Integer>> edge_incident_faces = mesh.getEdgeIncidentFaces();
+  	Vector<Double> edge_dihedral_angles = mesh.getEdgeDihedralAngles();
+  	
+    Point p;
+    Point cam = new Point(0, 0, -1000);   //Viewing direction
+    Point view = new Point();
+    Point norm;
+    double max_angle = 60;
+    double tmpd;
+    
+    //Label front facing faces
+    for(int i=0; i<faces.size(); i++){
+      p = Point.transform(M, faces.get(i).center);
+      
+      //Orthography
+      cam.x = p.x;
+      cam.y = p.y;
+
+      view.assign(cam.minus(p));
+      view.divideEquals(view.magnitude());
+      
+      norm = Point.transform(M, faces.get(i).normal);
+      norm.divideEquals(norm.magnitude());
+      
+      tmpd = view.x * norm.x + view.y * norm.y + view.z * norm.z;
+      
+      if(tmpd > 0){ //Should be 0 but a little bit of tolerance looks better
+        faces_visible.set(i, true);
+      }else{
+        faces_visible.set(i, false);
+      }
+    }
+
+    //Find visible edges
+    Vector<Integer> sharp_edges = new Vector<Integer>();
+    Vector<Integer> outline_edges = new Vector<Integer>();
+    
+    for(int i=0; i<edge_incident_faces.size(); i++){
+      if(edge_incident_faces.get(i).size() == 1){                      //Border edge
+        sharp_edges.add(i);
+      }else{                                  //Creases
+        if(Math.abs(edge_dihedral_angles.get(i)) > max_angle){
+          sharp_edges.add(i);
+        }
+      }
+
+      //Silhouette
+      if(edge_incident_faces.get(i).size() > 1 && faces_visible.get(edge_incident_faces.get(i).get(0)) ^ faces_visible.get(edge_incident_faces.get(i).get(1))){
+        outline_edges.add(i);
+      }
+    }
+    
+    //Draw edges
+    gl.glDisable(GL.GL_LIGHTING);
+    gl.glColor3f(0.0f, 0.0f, 0.0f);    
+    gl.glLineWidth(3);
+    gl.glBegin(GL.GL_LINES);
+    
+    for(int i=0; i<outline_edges.size(); i++){
+      gl.glVertex3f((float)vertices.get(edges.get(outline_edges.get(i)).v0).x, (float)vertices.get(edges.get(outline_edges.get(i)).v0).y, (float)vertices.get(edges.get(outline_edges.get(i)).v0).z);
+      gl.glVertex3f((float)vertices.get(edges.get(outline_edges.get(i)).v1).x, (float)vertices.get(edges.get(outline_edges.get(i)).v1).y, (float)vertices.get(edges.get(outline_edges.get(i)).v1).z); 
+    }
+    
+    for(int i=0; i<sharp_edges.size(); i++){
+      gl.glVertex3f((float)vertices.get(edges.get(sharp_edges.get(i)).v0).x, (float)vertices.get(edges.get(sharp_edges.get(i)).v0).y, (float)vertices.get(edges.get(sharp_edges.get(i)).v0).z);
+      gl.glVertex3f((float)vertices.get(edges.get(sharp_edges.get(i)).v1).x, (float)vertices.get(edges.get(sharp_edges.get(i)).v1).y, (float)vertices.get(edges.get(sharp_edges.get(i)).v1).z); 
+    }
+    
+    gl.glEnd();  
+  }
+  
+  /**
+   * Draw the unshaded faces is a solid color.
+   *  @param gl the OpenGL context to render to
+   */
+  public void drawSolid(GL gl, Mesh mesh)
+  {
+  	Vector<Face> faces = mesh.getFaces();
+  	Vector<Point> vertices = mesh.getVertices();
+  	
+    gl.glDisable(GL.GL_LIGHTING);
+    gl.glColor3f(1.0f, 1.0f, 1.0f);      
+    gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
+    gl.glPolygonOffset(1, 1);
+
+    for(int i=0; i<faces.size(); i++){
+      gl.glBegin(GL.GL_POLYGON);
+      
+      for(int j=0; j<faces.get(i).v.length; j++){
+        gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
+      }
+      
+      gl.glEnd();
+    }
+    
+    gl.glDisable(GL.GL_POLYGON_OFFSET_FILL);
+  }
+  
+  /**
+   * Draw the shaded faces of the model.
+   *  @param gl the OpenGL context to render to
+   *  @param SMOOTH if true the vertex normals will be used instead of the face normals
+   */
+  public void drawShaded(GL gl, Mesh mesh, boolean SMOOTH)
+  {
+  	bindTextures(gl, mesh, true);	//Note: must force rebinding in case the canvas is resized!
+  	
+    if(!SMOOTH){
+      drawShadedFlat(gl, mesh);
+    }else{
+      drawShadedSmooth(gl, mesh);
+    }
+    
+    drawShadedDegenerate(gl, mesh);
+  }
+  
+  /**
+   * Draw the flat shaded faces of the model.
+   *  @param gl the OpenGL context to render to
+   */
+  public void drawShadedFlat(GL gl, Mesh mesh)
+  {
+  	Vector<Point> vertices = mesh.getVertices();
+  	Vector<Color> vertex_colors = mesh.getVertexColors();
+  	Vector<Face> faces = mesh.getFaces();
+  	
+    Point norm;
+    boolean TEXTURE = true;
+    int tid = -1;
+    
+    //Draw faces
+    gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
+    gl.glPolygonOffset(1, 1);
+    
+    if(lighting == DrawOption.ENABLED){
+    	//Restore default values in case materials were enabled and changed them!
+    	gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT, new float[]{0.2f, 0.2f, 0.2f, 1.0f}, 0);
+    	gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_DIFFUSE, new float[]{0.8f, 0.8f, 0.8f, 1.0f}, 0);
+    	
+    	gl.glEnable(GL.GL_LIGHTING);
+    }else if(lighting == DrawOption.MATERIAL){
+	    gl.glColorMaterial(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT_AND_DIFFUSE);
+	    gl.glEnable(GL.GL_COLOR_MATERIAL);
+	    gl.glEnable(GL.GL_LIGHTING);
+    }
+    
+    if(texture == DrawOption.DISABLED){
+    	TEXTURE = false;
+    }else if(texture == DrawOption.DECAL){
+	  	gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_DECAL);
+	  }else if(texture == DrawOption.MODULATE){
+	  	gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE);
+	  }
+
+    if(vertex_colors.size() == vertices.size()){															//Use vertex colors
+      for(int i=0; i<faces.size(); i++){
+        if(faces.get(i).VISIBLE && faces.get(i).v.length >= 3){
+          gl.glBegin(GL.GL_POLYGON);
+          norm = faces.get(i).normal;
+          gl.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
+        
+          for(int j=0; j<faces.get(i).v.length; j++){
+            gl.glColor3f(vertex_colors.get(faces.get(i).v[j]).r, vertex_colors.get(faces.get(i).v[j]).g, vertex_colors.get(faces.get(i).v[j]).b);
+            gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
+          }
+          
+          gl.glEnd();
+        }
+      }
+    }else{																																		//Use face color
+      for(int i=0; i<faces.size(); i++){
+        if(faces.get(i).VISIBLE && faces.get(i).v.length >= 3){
+        	if(TEXTURE && faces.get(i).uv != null && faces.get(i).material != null && faces.get(i).material.tid != -1){		//Textured 
+        		gl.glEnable(gl.GL_TEXTURE_2D);
+            
+            if(tid != faces.get(i).material.tid){
+            	tid = faces.get(i).material.tid;
+            	gl.glBindTexture(gl.GL_TEXTURE_2D, tid);
+            }
+            
+	          gl.glBegin(GL.GL_POLYGON);
+	          norm = faces.get(i).normal;
+	          gl.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
+	          
+	          if(faces.get(i).material != null && faces.get(i).material.diffuse != null){	 
+	          	gl.glColor3f(faces.get(i).material.diffuse.r, faces.get(i).material.diffuse.g, faces.get(i).material.diffuse.b);
+	          }else{
+	          	gl.glColor3f(1.0f, 1.0f, 1.0f);
+	          }
+	          
+	          for(int j=0; j<faces.get(i).v.length; j++){
+	            gl.glTexCoord2f(faces.get(i).uv[j].u, faces.get(i).uv[j].v);
+	            gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
+	          }
+	          
+	          gl.glEnd();
+	          gl.glDisable(gl.GL_TEXTURE_2D);
+        	}else{																															//Not textured
+	          gl.glBegin(GL.GL_POLYGON);
+	          norm = faces.get(i).normal;
+	          gl.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
+	          
+	          if(faces.get(i).material != null && faces.get(i).material.diffuse != null){
+	          	gl.glColor3f(faces.get(i).material.diffuse.r, faces.get(i).material.diffuse.g, faces.get(i).material.diffuse.b);
+	          }else{
+	          	gl.glColor3f(0.5f, 0.5f, 0.5f);
+	          }
+
+	          for(int j=0; j<faces.get(i).v.length; j++){
+	            gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
+	          }
+	          
+	          gl.glEnd();
+        	}
+        }
+      }
+    }
+    
+    if(lighting == DrawOption.MATERIAL){
+    	gl.glDisable(GL.GL_COLOR_MATERIAL);
+    }
+    
+    gl.glDisable(GL.GL_POLYGON_OFFSET_FILL);
+  }
+  
+  /**
+   * Draw the flat shaded selected faces of the model.  Note, color can and should be set externally!
+   *  @param gl the OpenGL context to render to
+   *  @param selected_faces the faces to draw
+   */
+  public void drawShadedFlat(GL gl, Mesh mesh, Vector<Integer> selected_faces)
+  {
+  	Vector<Point> vertices = mesh.getVertices();
+  	Vector<Face> faces = mesh.getFaces();
+    Point norm;
+    int index;
+    
+    //Draw faces
+    gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
+    gl.glPolygonOffset(-1, -1);
+  	
+    gl.glColorMaterial(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT_AND_DIFFUSE);
+    gl.glEnable(GL.GL_COLOR_MATERIAL);
+    gl.glEnable(GL.GL_LIGHTING);
+    
+    for(int i=0; i<selected_faces.size(); i++){
+    	index = selected_faces.get(i);
+    	
+      if(faces.get(index).VISIBLE && faces.get(index).v.length >= 3){
+        gl.glBegin(GL.GL_POLYGON);
+        norm = faces.get(index).normal;
+        gl.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
+
+        for(int j=0; j<faces.get(index).v.length; j++){
+          gl.glVertex3f((float)vertices.get(faces.get(index).v[j]).x, (float)vertices.get(faces.get(index).v[j]).y, (float)vertices.get(faces.get(index).v[j]).z);
+        }
+        
+        gl.glEnd();
+    	}
+    }
+    
+  	gl.glDisable(GL.GL_COLOR_MATERIAL);
+    gl.glDisable(GL.GL_POLYGON_OFFSET_FILL);
+  }
+  
+  /**
+   * Draw the smooth shaded faces of the model using vertex colors.
+   *  @param gl the OpenGL context to render to
+   */
+  public void drawShadedSmooth(GL gl, Mesh mesh)
+  {
+  	Vector<Point> vertices = mesh.getVertices();
+  	Vector<Point> vertex_normals = mesh.getVertexNormals();
+  	Vector<Color> vertex_colors = mesh.getVertexColors();
+  	Vector<Face> faces = mesh.getFaces();
+    Point norm;
+    boolean TEXTURE = true;
+    int tid = -1;
+    
+    gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
+    gl.glPolygonOffset(1, 1);
+    
+    if(lighting == DrawOption.ENABLED){
+    	//Restore default values in case materials were enabled and changed them!
+    	gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT, new float[]{0.2f, 0.2f, 0.2f, 1.0f}, 0);
+    	gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_DIFFUSE, new float[]{0.8f, 0.8f, 0.8f, 1.0f}, 0);
+    	
+    	gl.glEnable(GL.GL_LIGHTING);
+    }else if(lighting == DrawOption.MATERIAL){
+	    gl.glColorMaterial(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT_AND_DIFFUSE);
+	    gl.glEnable(GL.GL_COLOR_MATERIAL);
+	    gl.glEnable(GL.GL_LIGHTING);
+    }
+    
+    if(texture == DrawOption.DISABLED){
+    	TEXTURE = false;
+    }else if(texture == DrawOption.DECAL){
+	  	gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_DECAL);
+	  }else if(texture == DrawOption.MODULATE){
+	  	gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE);
+	  }
+    
+    if(vertex_colors.size() == vertices.size()){															//Use vertex colors
+      for(int i=0; i<faces.size(); i++){
+        if(faces.get(i).VISIBLE && faces.get(i).v.length >= 3){
+          gl.glBegin(GL.GL_POLYGON);
+          
+          for(int j=0; j<faces.get(i).v.length; j++){
+          	if(faces.get(i).vn == null){
+          		norm = vertex_normals.get(faces.get(i).v[j]);
+          	}else{
+          		norm = faces.get(i).vn[j];
+          	}
+          	
+            gl.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
+            gl.glColor3f(vertex_colors.get(faces.get(i).v[j]).r, vertex_colors.get(faces.get(i).v[j]).g, vertex_colors.get(faces.get(i).v[j]).b);
+            gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
+          }
+          
+          gl.glEnd();
+        }
+      }
+    }else{																																		//Use face color
+      for(int i=0; i<faces.size(); i++){
+        if(faces.get(i).VISIBLE && faces.get(i).v.length >= 3){
+        	if(TEXTURE && faces.get(i).uv != null && faces.get(i).material != null && faces.get(i).material.tid != -1){		//Textured 
+        		gl.glEnable(gl.GL_TEXTURE_2D);
+            
+            if(tid != faces.get(i).material.tid){
+            	tid = faces.get(i).material.tid;
+            	gl.glBindTexture(gl.GL_TEXTURE_2D, tid);
+            }
+            
+	          gl.glBegin(GL.GL_POLYGON);
+	          
+	          if(faces.get(i).material != null && faces.get(i).material.diffuse != null){
+	          	gl.glColor3f(faces.get(i).material.diffuse.r, faces.get(i).material.diffuse.g, faces.get(i).material.diffuse.b);
+	          }else{
+	          	gl.glColor3f(1.0f, 1.0f, 1.0f);
+	          }
+	        
+	          for(int j=0; j<faces.get(i).v.length; j++){
+	          	if(faces.get(i).vn == null){
+	          		norm = vertex_normals.get(faces.get(i).v[j]);
+	          	}else{
+	          		norm = faces.get(i).vn[j];
+	          	}
+	          	
+	            gl.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
+	            gl.glTexCoord2f(faces.get(i).uv[j].u, faces.get(i).uv[j].v);
+	            gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
+	          }
+	          
+	          gl.glEnd();
+	          gl.glDisable(gl.GL_TEXTURE_2D);
+        	}else{																															//Not textured
+	          gl.glBegin(GL.GL_POLYGON);
+	          
+	          if(faces.get(i).material != null && faces.get(i).material.diffuse != null){
+	          	gl.glColor3f(faces.get(i).material.diffuse.r, faces.get(i).material.diffuse.g, faces.get(i).material.diffuse.b);
+	          }else{
+	          	gl.glColor3f(0.5f, 0.5f, 0.5f);
+	          }
+	          
+	          for(int j=0; j<faces.get(i).v.length; j++){
+	          	if(faces.get(i).vn == null){
+	          		norm = vertex_normals.get(faces.get(i).v[j]);
+	          	}else{
+	          		norm = faces.get(i).vn[j];
+	          	}
+	          	
+	            gl.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
+	            gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
+	          }
+	          
+	          gl.glEnd();
+        	}
+        }
+      }
+    }
+      
+    if(lighting == DrawOption.MATERIAL){
+    	gl.glDisable(GL.GL_COLOR_MATERIAL);
+    }
+    
+    gl.glDisable(GL.GL_POLYGON_OFFSET_FILL);
+  }
+  
+  /**
+   * Draw degenerate polygons (i.e. edges).
+   *  @param gl the OpenGL context to render to
+   */
+  public void drawShadedDegenerate(GL gl, Mesh mesh)
+  {
+  	Vector<Point> vertices = mesh.getVertices();
+  	Vector<Color> vertex_colors = mesh.getVertexColors();
+  	Vector<Face> faces = mesh.getFaces();
+  	
+    gl.glDisable(GL.GL_LIGHTING);
+    gl.glLineWidth(1.0f);
+    gl.glBegin(GL.GL_LINES);
+
+    for(int i=0; i<faces.size(); i++){
+      if(faces.get(i).VISIBLE && faces.get(i).v.length == 2){
+        for(int j=0; j<faces.get(i).v.length; j++){
+        	if(faces.get(i).material != null && faces.get(i).material.diffuse != null){
+	        	gl.glColor3f(faces.get(i).material.diffuse.r, faces.get(i).material.diffuse.g, faces.get(i).material.diffuse.b);
+        	}else if(faces.get(i).v[j] < vertex_colors.size()){
+            gl.glColor3f(vertex_colors.get(faces.get(i).v[j]).r, vertex_colors.get(faces.get(i).v[j]).g, vertex_colors.get(faces.get(i).v[j]).b);
+	        }else{
+	        	gl.glColor3f(0.5f, 0.5f, 0.5f);
+	        }	
+        	
+          gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
+        }
+      }
+    }
+    
+    gl.glEnd();
+  }
+  
+  /**
+   * Draw the faces shading them only with regards to a specular compent.  This is done in a manner
+   * similar to that in drawIllustration.
+   *  @param gl the OpenGL context to render to
+   *  @param M the current modelview matrix
+   */
+  public void drawHighlights(GL gl, Mesh mesh, double[][] M)
+  {
+  	Vector<Point> vertices = mesh.getVertices();
+  	Vector<Point> vertex_normals = mesh.getVertexNormals();
+  	Vector<Face> faces = mesh.getFaces();
+  	
+    float ks = 1.0f;
+    float ns = 2f; //16f;
+    float tmpf;
+      
+    Point light = new Point(0.70711, -0.70711, 0.0);
+    Point norm;
+    Color ambient = new Color(0.7f, 0.7f, 0.7f);
+    Color specular = new Color(1, 1, 1);
+    Color color = new Color();
+    
+    gl.glDisable(GL.GL_LIGHTING);
+    gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
+    gl.glPolygonOffset(1, 1);
+
+    for(int i=0; i<faces.size(); i++){
+      gl.glBegin(GL.GL_POLYGON);
+      
+      for(int j=0; j<faces.get(i).v.length; j++){
+        norm = Point.transform(M, vertex_normals.get(faces.get(i).v[j]));
+        norm.divideEquals(norm.magnitude());
+        tmpf = (float)light.times(norm);
+
+        color.assign(ambient);
+
+        //Specular
+        if(tmpf < 0) tmpf = 0;
+        color.r += ks*specular.r*Math.pow(tmpf,ns);
+        color.g += ks*specular.g*Math.pow(tmpf,ns);
+        color.b += ks*specular.b*Math.pow(tmpf,ns);
+          
+        gl.glColor3f(color.r, color.g, color.b);
+        gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
+      }
+      
+      gl.glEnd();
+    }
+    
+    gl.glDisable(GL.GL_POLYGON_OFFSET_FILL);
+  }
+  
+  /**
+   * Draw the faces shaded in a non-photorealistic manner that is similar to book illustrations which
+   * emphasize shape within the rendering [Gooch et al., SIGGRAPH 1998].
+   *  @param gl the OpenGL context to render to
+   *  @param M the current modelview matrix
+   */
+  public void drawIllustration(GL gl, Mesh mesh, double[][] M)
+  {
+  	Vector<Point> vertices = mesh.getVertices();
+  	Vector<Point> vertex_normals = mesh.getVertexNormals();
+  	Vector<Face> faces = mesh.getFaces();
+  	
+    float blue = 0.4f;
+    float yellow = 0.4f;
+    float alpha = 0.2f;
+    float beta = 0.6f;
+    float ks = 1.0f;
+    float ns = 16f;
+    float tmpf;
+      
+    Point light = new Point(0.70711, -0.70711, 0.0);
+    Point norm;
+    Color diffuse = new Color(1, 1, 1);
+    Color specular = new Color(1, 1, 1);
+    Color kblue = new Color(0, 0, blue);
+    Color kyellow = new Color(yellow, yellow, 0);
+    Color kcool = new Color();
+    Color kwarm = new Color();
+    Color color = new Color();
+    
+    gl.glDisable(GL.GL_LIGHTING);
+    gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
+    gl.glPolygonOffset(1, 1);
+
+    for(int i=0; i<faces.size(); i++){
+      gl.glBegin(GL.GL_POLYGON);
+      
+      for(int j=0; j<faces.get(i).v.length; j++){
+        norm = Point.transform(M, vertex_normals.get(faces.get(i).v[j]));
+        norm.divideEquals(norm.magnitude());
+        tmpf = (float)light.times(norm);
+          
+        //Shading
+        kcool.r = kblue.r + (alpha * diffuse.r);
+        kcool.g = kblue.g + (alpha * diffuse.g);
+        kcool.b = kblue.b + (alpha * diffuse.b);
+        kwarm.r = kyellow.r + (beta * diffuse.r);
+        kwarm.g = kyellow.g + (beta * diffuse.g);
+        kwarm.b = kyellow.b + (beta * diffuse.b);
+
+        color.r = (((1.0f+tmpf)/2.0f) * kwarm.r) + ((1.0f - ((1+tmpf)/2.0f)) * kcool.r);
+        color.g = (((1.0f+tmpf)/2.0f) * kwarm.g) + ((1.0f - ((1+tmpf)/2.0f)) * kcool.g);
+        color.b = (((1.0f+tmpf)/2.0f) * kwarm.b) + ((1.0f - ((1+tmpf)/2.0f)) * kcool.b);
+
+        //Specular
+        if(tmpf < 0) tmpf = 0;
+        color.r += ks*specular.r*Math.pow(tmpf,ns);
+        color.g += ks*specular.g*Math.pow(tmpf,ns);
+        color.b += ks*specular.b*Math.pow(tmpf,ns);
+          
+        gl.glColor3f(color.r, color.g, color.b);
+        gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
+      }
+      
+      gl.glEnd();
+    }
+    
+    gl.glDisable(GL.GL_POLYGON_OFFSET_FILL);
+  }
+  
+  /**
+   * Draw the faces shaded in a non-photorealistic manner that is similar to 
+   * metallic illustrations [Gooch et al., SIGGRAPH 1998].
+   *  @param gl the OpenGL context to render to
+   *  @param M the current modelview matrix
+   */
+  public void drawMetal(GL gl, Mesh mesh, double[][] M)
+  {
+  	Vector<Point> vertices = mesh.getVertices();
+  	Vector<Face> faces = mesh.getFaces();
+  	Vector<Point> axis = mesh.getMetallicAxis();
+  	Vector<Double> stripes = mesh.getMetallicStripes();
+  	
+    if(!mesh.INITIALIZED_METAL){
+      mesh.initialize_metal();
+      mesh.INITIALIZED_METAL = true;
+    }
+    
+    //Vertex light = new Vertex(0.70711, -0.70711, 0.0);
+    Point light = new Point(0.57735, 0.57735, 0.57735);
+    Point radial = new Point();    
+    Point tmpv = new Point();
+    double tmpd;
+    
+    gl.glDisable(GL.GL_LIGHTING);
+    gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
+    gl.glPolygonOffset(1, 1);
+
+    for(int i=0; i<faces.size(); i++){
+      gl.glBegin(GL.GL_POLYGON);
+      
+      for(int j=0; j<faces.get(i).v.length; j++){
+        int k = faces.get(i).v[j];
+        tmpv.x = vertices.get(k).x - axis.get(k).x;
+        tmpv.y = vertices.get(k).y - axis.get(k).y;
+        tmpv.z = vertices.get(k).z - axis.get(k).z;
+        
+        tmpv.divideEquals(tmpv.magnitude());
+        radial = Point.transform(M, tmpv);
+        
+        tmpd = light.x*radial.x +  light.y*radial.y + light.z*radial.z;
+        tmpd = (tmpd + 1.0) / 2.0;        //Should be between 0 and 1
+        if(tmpd < 0) tmpd = 0;
+        if(tmpd > 1) tmpd = 1;
+        tmpd = stripes.get((int)Math.round(tmpd * ((double)(stripes.size()-1))));
+        
+        gl.glColor3f((float)tmpd, (float)tmpd, (float)tmpd);
+        gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
+      }
+      
+      gl.glEnd();
+    }
   }
 
 	/**
@@ -2003,21 +2717,12 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     	SHADED_LIGHTING_ENABLED = menuitem_SHADED_LIGHTING_ENABLED.isSelected();
     	SHADED_LIGHTING_MATERIAL = menuitem_SHADED_LIGHTING_MATERIAL.isSelected();
     	
-    	//Update meshes
-    	DrawOption draw_option = null;
-    	
     	if(source == menuitem_SHADED_LIGHTING_DISABLED){
-    		draw_option = DrawOption.DISABLED;
+    		lighting = DrawOption.DISABLED;
     	}else if(source == menuitem_SHADED_LIGHTING_ENABLED){
-    		draw_option = DrawOption.ENABLED;
+    		lighting = DrawOption.ENABLED;
     	}else if(source == menuitem_SHADED_LIGHTING_MATERIAL){
-    		draw_option = DrawOption.MATERIAL;
-    	}
-    	
-    	mesh.setLighting(draw_option);
-    	
-    	for(int i=0; i<added_meshes.size(); i++){
-      	added_meshes.get(i).setLighting(draw_option);
+    		lighting = DrawOption.MATERIAL;
     	}
     	
     	refreshList();
@@ -2037,22 +2742,13 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     	SHADED_TEXTURE_DISABLED = menuitem_SHADED_TEXTURE_DISABLED.isSelected();
     	SHADED_TEXTURE_DECAL = menuitem_SHADED_TEXTURE_DECAL.isSelected();
     	SHADED_TEXTURE_MODULATE = menuitem_SHADED_TEXTURE_MODULATE.isSelected();
-    	
-    	//Update meshes
-    	DrawOption draw_option = null;
-    	
+
     	if(source == menuitem_SHADED_TEXTURE_DISABLED){
-    		draw_option = DrawOption.DISABLED;
+    		texture = DrawOption.DISABLED;
     	}else if(source == menuitem_SHADED_TEXTURE_DECAL){
-    		draw_option = DrawOption.DECAL;
+    		texture = DrawOption.DECAL;
     	}else if(source == menuitem_SHADED_TEXTURE_MODULATE){
-    		draw_option = DrawOption.MODULATE;
-    	}
-    	
-    	mesh.setTexture(draw_option);
-    	
-    	for(int i=0; i<added_meshes.size(); i++){
-      	added_meshes.get(i).setTexture(draw_option);
+    		texture = DrawOption.MODULATE;
     	}
     	
     	refreshList();
@@ -2085,12 +2781,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 	      	SHADED_LIGHTING_DISABLED = menuitem_SHADED_LIGHTING_DISABLED.isSelected();
 	      	SHADED_LIGHTING_ENABLED = menuitem_SHADED_LIGHTING_ENABLED.isSelected();
 	      	
-	      	//Update meshes
-	      	mesh.setLighting(DrawOption.MATERIAL);
-	      	
-	      	for(int i=0; i<added_meshes.size(); i++){
-	        	added_meshes.get(i).setLighting(DrawOption.MATERIAL);
-	      	}
+	      	lighting = DrawOption.MATERIAL;
 	      	
 	      	refreshList();
     		}
@@ -2163,12 +2854,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 	          	SHADED_LIGHTING_DISABLED = menuitem_SHADED_LIGHTING_DISABLED.isSelected();
 	          	SHADED_LIGHTING_ENABLED = menuitem_SHADED_LIGHTING_ENABLED.isSelected();
 	          	
-	          	//Update meshes
-	          	mesh.setLighting(DrawOption.MATERIAL);
-	          	
-	          	for(int j=0; j<added_meshes.size(); j++){
-	            	added_meshes.get(j).setLighting(DrawOption.MATERIAL);
-	          	}
+	          	lighting = DrawOption.MATERIAL;
       			}
           	
           	//Paint the groups faces
