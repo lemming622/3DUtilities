@@ -146,9 +146,9 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   private boolean ILLUSTRATION = false;
   private boolean METAL = false;
   private boolean REBUILD_SIGNATURES = false;
-  private boolean RAYTRACE = false;
+  private boolean RAYTRACE = false;  
+  private boolean ANTI_ALIASING = false;
   public boolean AUTO_REFRESH = false;
-  private boolean ANTI_ALIASING = true;
   
   public boolean RUNNING = true;  
   private boolean UPDATE_CAMERA = false;
@@ -233,7 +233,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     
     if(filename != null){
       try{
-        loadIni(new FileInputStream(filename));
+        loadINI(new FileInputStream(filename));
       }catch(Exception e){}
     }
     
@@ -276,7 +276,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
    * Load initialization file containing inital values for the viewer.
    *  @param fis the file input stream (note this is friendly to applets!)
    */
-  public void loadIni(FileInputStream fis)
+  public void loadINI(FileInputStream fis)
   {
     try{
       BufferedReader ins = new BufferedReader(new InputStreamReader(fis));
@@ -330,6 +330,8 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
               ILLUSTRATION = Boolean.valueOf(value);
             }else if(key.equals("Metallic")){
               METAL = Boolean.valueOf(value);
+            }else if(key.equals("AntiAliasing")){
+            	ANTI_ALIASING = Boolean.valueOf(value);
             }else if(key.equals("AutoRefresh")){
               AUTO_REFRESH = Boolean.valueOf(value);
             }else if(key.equals("SaveAxis")){
@@ -1132,7 +1134,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     
     gl.glEnable(GL.GL_NORMALIZE);    
     gl.glEnable(GL.GL_DEPTH_TEST);
-    
+        	
     if(ANTI_ALIASING){
       gl.glHint(GL.GL_POINT_SMOOTH, GL.GL_NICEST);
       gl.glHint(GL.GL_LINE_SMOOTH, GL.GL_NICEST);

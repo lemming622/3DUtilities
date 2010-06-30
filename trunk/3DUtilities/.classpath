@@ -2,8 +2,6 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/jogl-1.1.1/gluegen-rt.jar"/>
-	<classpathentry kind="lib" path="lib/jogl-1.1.1/jogl.jar"/>
 	<classpathentry kind="lib" path="lib/jama-1.0.2/Jama-1.0.2.jar"/>
 	<classpathentry kind="lib" path="lib/wiiusej-0.12b/wiiusej.jar"/>
 	<classpathentry kind="lib" path="lib/jdom-1.1/jdom.jar"/>
@@ -67,5 +65,7 @@
 	<classpathentry kind="lib" path="lib/misc/jzlib.jar"/>
 	<classpathentry kind="lib" path="lib/ncsa/MLUtilities.jar"/>
 	<classpathentry kind="lib" path="lib/ncsa/3DUtilities_Loaders.jar"/>
+	<classpathentry kind="lib" path="lib/jogl-1.1.1a/gluegen-rt.jar"/>
+	<classpathentry kind="lib" path="lib/jogl-1.1.1a/jogl.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
