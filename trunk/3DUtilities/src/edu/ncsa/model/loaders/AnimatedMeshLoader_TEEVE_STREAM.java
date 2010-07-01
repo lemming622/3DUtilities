@@ -2,6 +2,7 @@ package edu.ncsa.model.loaders;
 import edu.ncsa.model.*;
 import edu.ncsa.model.MeshAuxiliary.*;
 import edu.ncsa.model.loaders.teeve.*;
+import edu.ncsa.model.graphics.jogl.*;
 import java.util.*;
 import java.io.*;
 import javax.swing.*;

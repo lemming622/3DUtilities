@@ -1,4 +1,4 @@
-package edu.ncsa.model.loaders.j3d;
+package edu.ncsa.model.graphics.j3d;
 import javax.swing.*;
 import javax.media.j3d.*;
 import javax.vecmath.*;

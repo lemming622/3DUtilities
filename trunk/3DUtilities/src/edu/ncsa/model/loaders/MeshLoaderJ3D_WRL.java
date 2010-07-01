@@ -1,7 +1,7 @@
 package edu.ncsa.model.loaders;
 import edu.ncsa.model.Mesh;
 import edu.ncsa.utility.*;
-import edu.ncsa.model.loaders.j3d.*;
+import edu.ncsa.model.graphics.j3d.*;
 import com.sun.j3d.loaders.*;
 import org.web3d.j3d.loaders.*;
 

@@ -1,4 +1,5 @@
 package edu.ncsa.model;
+import edu.ncsa.model.graphics.jogl.*;
 import javax.swing.*;
 
 /**

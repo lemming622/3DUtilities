@@ -1,4 +1,4 @@
-package edu.ncsa.model.loaders.j3d;
+package edu.ncsa.model.graphics.j3d;
 import edu.ncsa.model.*;
 import edu.ncsa.model.MeshAuxiliary.*;
 import edu.ncsa.matrix.*;
