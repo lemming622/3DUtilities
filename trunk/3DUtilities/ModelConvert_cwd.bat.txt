@@ -1,1 +1,0 @@
-java -cp "%~dp0lib/jogl-1.1.1/jogl.jar;%~dp0lib/jogl-1.1.1/gluegen-rt.jar;%~dp0lib/jdom-1.1/jdom.jar;%~dp0lib/jama-1.0.2/Jama-1.0.2.jar;%~dp0lib/j3d/xj3D-1.0/xj3d-all.jar;%~dp0lib/j3d/j3d-1.5.2/j3dcore.jar;%~dp0lib/j3d/j3d-1.5.2/j3dutils.jar;%~dp0lib/ncsa/portfolio/portfolio.jar;%~dp0lib/ncsa/3DFu_Loaders.jar;%~dp0ModelBrowser.jar" -Xmx1024m edu.ncsa.model.ModelConverter %1 %2

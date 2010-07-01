@@ -15,6 +15,7 @@ import java.awt.image.*;
 import java.io.*;
 import java.util.*;
 import java.nio.*;
+
 import javax.imageio.*;
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
@@ -417,6 +418,69 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   }
 
 	/**
+	 * Set the mesh structure.
+	 * @param mesh the mesh to display
+	 */
+	public synchronized void setMesh(Mesh mesh)
+	{
+	  boolean FOUND_COLORS = false;
+	  
+		added_meshes.clear();
+		added_transformations.clear();
+		selected_rotation_last = rotation_last;
+		selected_transformation = transformation;
+		selected_vertices = null;
+		selected_vertex_faces = null;
+		selected_components = null;
+		selected_component_faces = null;
+	
+		this.mesh = mesh;
+	  
+	  if(Signature != null) mesh.setSignature(Signature, metadata_path + mesh.getMetaData("Name") + ".signature", REBUILD_SIGNATURES); 
+	  if(ADJUST) mesh.center(0.8f*((width<height)?width:height)/2.0f);
+	  
+	  //If no faces then display points
+	  POINTS = POINTS || mesh.getFaces().isEmpty();
+	  if(menuitem_POINTS != null) menuitem_POINTS.setSelected(POINTS); 
+	  
+	  //If colors then enable materials
+	  for(int i=0; i<mesh.getFaces().size(); i++){
+	  	if(mesh.getFaces().get(i).material != null && mesh.getFaces().get(i).material.diffuse != null){
+	  		FOUND_COLORS = true;
+	  		break;
+	  	}
+	  }
+	  
+	  if(mesh.getVertices().size() == mesh.getVertexColors().size()) FOUND_COLORS = true;
+	  
+		SHADED_LIGHTING_DISABLED = false;
+		SHADED_LIGHTING_ENABLED = !FOUND_COLORS;
+		SHADED_LIGHTING_MATERIAL = FOUND_COLORS;
+		if(menuitem_SHADED_LIGHTING_DISABLED != null) menuitem_SHADED_LIGHTING_DISABLED.setSelected(SHADED_LIGHTING_DISABLED);
+		if(menuitem_SHADED_LIGHTING_ENABLED != null) menuitem_SHADED_LIGHTING_ENABLED.setSelected(SHADED_LIGHTING_ENABLED);
+		if(menuitem_SHADED_LIGHTING_MATERIAL != null) menuitem_SHADED_LIGHTING_MATERIAL.setSelected(SHADED_LIGHTING_MATERIAL);
+	  	
+		if(!FOUND_COLORS){
+			lighting = DrawOption.ENABLED;
+		}else{
+			lighting = DrawOption.MATERIAL;
+		}
+		
+		if(SHADED_TEXTURE_DECAL){
+			texture = DrawOption.DECAL;
+		}else if(SHADED_TEXTURE_MODULATE){
+			texture = DrawOption.MODULATE;
+		}else{
+			texture = DrawOption.DISABLED;
+		}
+	  
+	  setPopupMenu();
+	  refreshList();
+	  UPDATE_CAMERA = true;		//Why do I need to update the camera (needed to display multiple modelviewers in modelbroswer)?
+	  REFRESH = true;
+	}
+
+	/**
    * Set the model adjustments.
    * @param tx the x-offset
    * @param ty the y-offset
@@ -428,6 +492,16 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   	adj_ty = ty;
   	adj_scl = scl;
   }
+
+	/**
+	 * Set points to visible/invisible
+	 * @param POINTS true if points are to be visible
+	 */
+	public void enablePoints(boolean POINTS)
+	{
+		this.POINTS = POINTS;
+	  if(menuitem_POINTS != null) menuitem_POINTS.setSelected(POINTS); 	
+	}
 
 	/**
    * Set the popup menu.
@@ -638,79 +712,6 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   }
 
 	/**
-   * Set the mesh structure.
-   * @param mesh the mesh to display
-   */
-  public synchronized void setMesh(Mesh mesh)
-  {
-    boolean FOUND_COLORS = false;
-    
-  	added_meshes.clear();
-  	added_transformations.clear();
-		selected_rotation_last = rotation_last;
-  	selected_transformation = transformation;
-  	selected_vertices = null;
-  	selected_vertex_faces = null;
-  	selected_components = null;
-  	selected_component_faces = null;
-  
-  	this.mesh = mesh;
-    
-    if(Signature != null) mesh.setSignature(Signature, metadata_path + mesh.getMetaData("Name") + ".signature", REBUILD_SIGNATURES); 
-    if(ADJUST) mesh.center(0.8f*((width<height)?width:height)/2.0f);
-    
-    //If no faces then display points
-    POINTS = POINTS || mesh.getFaces().isEmpty();
-    if(menuitem_POINTS != null) menuitem_POINTS.setSelected(POINTS); 
-    
-    //If colors then enable materials
-    for(int i=0; i<mesh.getFaces().size(); i++){
-    	if(mesh.getFaces().get(i).material != null && mesh.getFaces().get(i).material.diffuse != null){
-    		FOUND_COLORS = true;
-    		break;
-    	}
-    }
-    
-    if(mesh.getVertices().size() == mesh.getVertexColors().size()) FOUND_COLORS = true;
-    
-  	SHADED_LIGHTING_DISABLED = false;
-  	SHADED_LIGHTING_ENABLED = !FOUND_COLORS;
-  	SHADED_LIGHTING_MATERIAL = FOUND_COLORS;
-  	if(menuitem_SHADED_LIGHTING_DISABLED != null) menuitem_SHADED_LIGHTING_DISABLED.setSelected(SHADED_LIGHTING_DISABLED);
-  	if(menuitem_SHADED_LIGHTING_ENABLED != null) menuitem_SHADED_LIGHTING_ENABLED.setSelected(SHADED_LIGHTING_ENABLED);
-  	if(menuitem_SHADED_LIGHTING_MATERIAL != null) menuitem_SHADED_LIGHTING_MATERIAL.setSelected(SHADED_LIGHTING_MATERIAL);
-    	
-  	if(!FOUND_COLORS){
-  		lighting = DrawOption.ENABLED;
-  	}else{
-  		lighting = DrawOption.MATERIAL;
-  	}
-  	
-  	if(SHADED_TEXTURE_DECAL){
-  		texture = DrawOption.DECAL;
-  	}else if(SHADED_TEXTURE_MODULATE){
-  		texture = DrawOption.MODULATE;
-  	}else{
-  		texture = DrawOption.DISABLED;
-  	}
-    
-    setPopupMenu();
-    refreshList();
-    UPDATE_CAMERA = true;		//Why do I need to update the camera (needed to display multiple modelviewers in modelbroswer)?
-    REFRESH = true;
-  }
-
-	/**
-   * Set points to visible/invisible
-   * @param POINTS true if points are to be visible
-   */
-  public void enablePoints(boolean POINTS)
-  {
-  	this.POINTS = POINTS;
-    if(menuitem_POINTS != null) menuitem_POINTS.setSelected(POINTS); 	
-  }
-  
-  /**
    * Load model into our mesh structure.
    * @param filename the absolute name of the file
    * @param progressCallBack the callback handling progress updates
@@ -776,24 +777,23 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 
 	/**
    * Save contents of our mesh structure.
-   * @param pathname path to the new model
-   * @param filename file name of the new model
+   * @param filename the absolute file name of the new model
    */
-  public void save(String pathname, String filename)
-  {
+  public void save(String filename)
+  {    
     long t0 = 0, t1 = 0;
-    
-    System.out.print("Saving: " + filename + "... ");
+
+    System.out.print("Saving: " + Utility.getFilename(filename) + "... ");
     
     if(filename.contains(".jpg")){			//Special case since we have to render stuff!
       t0 = System.currentTimeMillis();
-      output_name = pathname + filename;
+      output_name = filename;
       SAVE_IMAGE = true;
       refresh(true);
       t1 = System.currentTimeMillis();
     }else if(filename.contains(".vh")){		
       t0 = System.currentTimeMillis();
-      output_name = pathname + filename;
+      output_name = filename;
       AXIS = false; menuitem_AXIS.setState(AXIS);      
       ORTHO = false; menuitem_ORTHO.setState(ORTHO);
       UPDATE_CAMERA = true;
@@ -802,7 +802,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
       t1 = System.currentTimeMillis();
     }else if(filename.contains(".pc")){
       t0 = System.currentTimeMillis();
-      output_name = pathname + filename;
+      output_name = filename;
       ORTHO = false; menuitem_ORTHO.setState(ORTHO);
       UPDATE_CAMERA = true;
       SAVE_POINTS_CAMERA = true;
@@ -810,7 +810,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
       t1 = System.currentTimeMillis();
     }else if(filename.contains(".pgm")){
       t0 = System.currentTimeMillis();
-      output_name = pathname + filename;
+      output_name = filename;
       SAVE_DEPTH = true;
       refresh(true);
       t1 = System.currentTimeMillis();
@@ -830,7 +830,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     	selected_transformation = transformation;
     	
     	//Save the mesh
-    	mesh.save(pathname + filename);
+    	mesh.save(filename);
     	
     	//Update the viewer
       setPopupMenu();
@@ -848,7 +848,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
    * @param gl the OpenGL context
    * @param filename the name of the file to save to
    */
-  public void saveImage(GL gl, String filename)
+  private void saveImage(GL gl, String filename)
   {
     BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     int[] rgb = grabImage(gl, GL.GL_BACK); 
@@ -1097,6 +1097,53 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
       outs.close();
     }catch(Exception e) {e.printStackTrace();}
   }
+
+	/**
+	 * Grab the currently rendered image from the OpenGL context.
+	 * @param gl the OpenGL context
+	 * @param gl_color_buffer the OpenGL color buffer to read from
+	 * @return the image data in ARGB row major order
+	 */
+	private int[] grabImage(GL gl, int gl_color_buffer)
+	{
+	  int[] pixels = new int[width*height];
+	  ByteBuffer buffer = ByteBuffer.allocateDirect(width*height*3);
+	  int r, g, b, at;
+	  
+	  gl.glReadBuffer(gl_color_buffer);
+	  gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1);
+	  gl.glReadPixels(0, 0, width, height, GL.GL_RGB, GL.GL_UNSIGNED_BYTE, buffer);
+	  
+	  pixels = new int[width * height];
+	  at = 0;
+	  
+	  for(int y=height-1; y>=0; y--){
+	    for(int x=0; x<width; x++){
+	      r = buffer.get(at++);
+	      g = buffer.get(at++);
+	      b = buffer.get(at++);
+	      pixels[y*width+x] = 0xff000000 | (r & 0x000000ff) << 16 | (g & 0x000000ff) << 8 | (b & 0x000000ff);
+	    }
+	  }
+	  
+	  return pixels;
+	}
+
+	/**
+	 * Grab a screen shot of the mesh.
+	 * @return the screen shot represented as an ARGB image
+	 */
+	public int[] grabImage()
+	{
+		GRAB_IMAGE = true;
+		refresh(true);
+	  
+	  while(GRAB_IMAGE){
+	  	Utility.pause(100);
+	  }
+		
+		return grabbed_image;
+	}
 
 	/**
    * Initialize the OpenGL canvas.
@@ -1378,84 +1425,119 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   }
 
 	/**
-   * Draw the reference axis to the given OpenGL context.
-   * @param gl the OpenGL context
-   * @param scale the scale of the axis (relative to the window width/height)
-   * @param line_width the width of the lines when rendering the axis
-   */
-  private void drawAxis(GL gl, float scale, int line_width)
-  {
-  	float length = scale * 0.8f * ((width<height)?width:height)/2.0f;
-  	
-    gl.glPushMatrix();
-    gl.glScalef(length, length, length);
-    gl.glDisable(GL.GL_LIGHTING);
-    gl.glLineWidth(line_width);
-    gl.glBegin(GL.GL_LINES);
-    
-    gl.glColor3f(1, 0, 0);
-    gl.glVertex3f(0, 0, 0);
-    gl.glVertex3f(1, 0, 0);
-    
-    gl.glColor3f(0, 1, 0);
-    gl.glVertex3f(0, 0, 0);
-    gl.glVertex3f(0, 1, 0);
-    
-    gl.glColor3f(0, 0, 1);
-    gl.glVertex3f(0, 0, 0);
-    gl.glVertex3f(0, 0, 1);
-    
-    gl.glEnd();
-    gl.glPopMatrix();
-  }
+	 * Draw a sphere to the given OpenGL context.
+	 * @param gl the OpenGL context
+	 * @param x the x-coordinate of the sphere's center
+	 * @param y the y-coordinate of the sphere's center
+	 * @param z the z-coordinate of the sphere's center
+	 * @param sx the scale in the x-direction
+	 * @param sy the scale in the y-direction
+	 * @param sz the scale in the z-direction
+	 */
+	private void drawSphere(GL gl, float x, float y, float z, float sx, float sy, float sz)
+	{
+	  GLU glu = new GLU();
+		GLUquadric quadric = glu.gluNewQuadric();
+		
+		gl.glPushMatrix();
+		gl.glTranslatef(x, y, z);
+	  gl.glScalef(sx, sy, sz);
+		glu.gluSphere(quadric, 1, 10, 10);
+		gl.glPopMatrix();
+	}
 
 	/**
-   * Draw the reference axis to the given OpenGL context.
-   * @param gl the OpenGL context
-   * @param scale the scale of the axis
-   * @param line_width the width of the lines when rendering the axis
-   */
-  private void drawCalibrationAxis(GL gl, float scale, int line_width)
-  {
-    gl.glDisable(GL.GL_LIGHTING);
-    gl.glPushMatrix();
-    gl.glScalef(scale, scale, scale);
-    
-    //Axis    
-    gl.glLineWidth(line_width);
-    gl.glBegin(GL.GL_LINES);
-    
-    gl.glColor3f(1, 0, 0);
-    gl.glVertex3f(0.05f, 0, 0);
-    gl.glVertex3f(1, 0, 0);
-    
-    gl.glColor3f(0, 1, 0);
-    gl.glVertex3f(0, 0.05f, 0);
-    gl.glVertex3f(0, 1, 0);
-    
-    gl.glColor3f(0, 0, 1);
-    gl.glVertex3f(0, 0, 0.05f);
-    gl.glVertex3f(0, 0, 1);
-    
-    gl.glEnd();
-    
-     //LED's
-    gl.glColor3f(1, 1, 0);
-    drawSphere(gl, 0, 0, 0, 0.025f);
-    drawSphere(gl, 1, 0, 0, 0.025f);
-    drawSphere(gl, 0, 1, 0, 0.025f);
-    drawSphere(gl, 0, 0, 1, 0.025f);
-    
-    //Mid-markers
-    if(false){
+	 * Draw a sphere to the given OpenGL context.
+	 * @param gl the OpenGL context
+	 * @param x the x-coordinate of the sphere's center
+	 * @param y the y-coordinate of the sphere's center
+	 * @param z the z-coordinate of the sphere's center
+	 * @param radius the radius of the sphere
+	 */
+	private void drawSphere(GL gl, float x, float y, float z, float radius)
+	{
+	  drawSphere(gl, x, y, z, radius, radius, radius);
+	}
+
+	/**
+	 * Draw the reference axis to the given OpenGL context.
+	 * @param gl the OpenGL context
+	 * @param scale the scale of the axis (relative to the window width/height)
+	 * @param line_width the width of the lines when rendering the axis
+	 */
+	private void drawAxis(GL gl, float scale, int line_width)
+	{
+		float length = scale * 0.8f * ((width<height)?width:height)/2.0f;
+		
+	  gl.glPushMatrix();
+	  gl.glScalef(length, length, length);
+	  gl.glDisable(GL.GL_LIGHTING);
+	  gl.glLineWidth(line_width);
+	  gl.glBegin(GL.GL_LINES);
+	  
+	  gl.glColor3f(1, 0, 0);
+	  gl.glVertex3f(0, 0, 0);
+	  gl.glVertex3f(1, 0, 0);
+	  
+	  gl.glColor3f(0, 1, 0);
+	  gl.glVertex3f(0, 0, 0);
+	  gl.glVertex3f(0, 1, 0);
+	  
+	  gl.glColor3f(0, 0, 1);
+	  gl.glVertex3f(0, 0, 0);
+	  gl.glVertex3f(0, 0, 1);
+	  
+	  gl.glEnd();
+	  gl.glPopMatrix();
+	}
+
+	/**
+	 * Draw the reference axis to the given OpenGL context.
+	 * @param gl the OpenGL context
+	 * @param scale the scale of the axis
+	 * @param line_width the width of the lines when rendering the axis
+	 */
+	private void drawCalibrationAxis(GL gl, float scale, int line_width)
+	{
+	  gl.glDisable(GL.GL_LIGHTING);
+	  gl.glPushMatrix();
+	  gl.glScalef(scale, scale, scale);
+	  
+	  //Axis    
+	  gl.glLineWidth(line_width);
+	  gl.glBegin(GL.GL_LINES);
+	  
+	  gl.glColor3f(1, 0, 0);
+	  gl.glVertex3f(0.05f, 0, 0);
+	  gl.glVertex3f(1, 0, 0);
+	  
+	  gl.glColor3f(0, 1, 0);
+	  gl.glVertex3f(0, 0.05f, 0);
+	  gl.glVertex3f(0, 1, 0);
+	  
+	  gl.glColor3f(0, 0, 1);
+	  gl.glVertex3f(0, 0, 0.05f);
+	  gl.glVertex3f(0, 0, 1);
+	  
+	  gl.glEnd();
+	  
+	   //LED's
+	  gl.glColor3f(1, 1, 0);
+	  drawSphere(gl, 0, 0, 0, 0.025f);
+	  drawSphere(gl, 1, 0, 0, 0.025f);
+	  drawSphere(gl, 0, 1, 0, 0.025f);
+	  drawSphere(gl, 0, 0, 1, 0.025f);
+	  
+	  //Mid-markers
+	  if(false){
 	    gl.glColor3f(0, 0, 0);
 	    drawSphere(gl, 0.5f, 0, 0, 2*0.025f, 0.025f, 0.025f);
 	    drawSphere(gl, 0, 0.5f, 0, 0.025f, 2*0.025f, 0.025f);
 	    drawSphere(gl, 0, 0, 0.5f, 0.025f, 0.025f, 2*0.025f);
-    }
-    
-    //Third-markers
-    if(true){
+	  }
+	  
+	  //Third-markers
+	  if(true){
 	    gl.glColor3f(0, 0, 0);
 	    drawSphere(gl, 0.33f, 0, 0, 2*0.025f, 0.025f, 0.025f);
 	    drawSphere(gl, 0.67f, 0, 0, 2*0.025f, 0.025f, 0.025f);
@@ -1463,124 +1545,18 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 	    drawSphere(gl, 0, 0.67f, 0, 0.025f, 2*0.025f, 0.025f);
 	    drawSphere(gl, 0, 0, 0.33f, 0.025f, 0.025f, 2*0.025f);
 	    drawSphere(gl, 0, 0, 0.67f, 0.025f, 0.025f, 2*0.025f);
-    }
-    
-    gl.glPopMatrix();
-  }
-  
-  /**
-   * Draw a sphere to the given OpenGL context.
-   * @param gl the OpenGL context
-   * @param x the x-coordinate of the sphere's center
-   * @param y the y-coordinate of the sphere's center
-   * @param z the z-coordinate of the sphere's center
-   * @param radius the radius of the sphere
-   */
-  public void drawSphere(GL gl, float x, float y, float z, float radius)
-  {
-    drawSphere(gl, x, y, z, radius, radius, radius);
-  }
-  
-  /**
-   * Draw a sphere to the given OpenGL context.
-   * @param gl the OpenGL context
-   * @param x the x-coordinate of the sphere's center
-   * @param y the y-coordinate of the sphere's center
-   * @param z the z-coordinate of the sphere's center
-   * @param sx the scale in the x-direction
-   * @param sy the scale in the y-direction
-   * @param sz the scale in the z-direction
-   */
-  public void drawSphere(GL gl, float x, float y, float z, float sx, float sy, float sz)
-  {
-    GLU glu = new GLU();
-  	GLUquadric quadric = glu.gluNewQuadric();
-  	
-  	gl.glPushMatrix();
-  	gl.glTranslatef(x, y, z);
-    gl.glScalef(sx, sy, sz);
-  	glu.gluSphere(quadric, 1, 10, 10);
-  	gl.glPopMatrix();
-  }
-  
-	/**
-   * Grab the currently rendered image from the OpenGL context.
-   * @param gl the OpenGL context
-   * @param gl_color_buffer the OpenGL color buffer to read from
-   * @return the image data in ARGB row major order
-   */
-  public int[] grabImage(GL gl, int gl_color_buffer)
-  {
-    int[] pixels = new int[width*height];
-    ByteBuffer buffer = ByteBuffer.allocateDirect(width*height*3);
-    int r, g, b, at;
-    
-    gl.glReadBuffer(gl_color_buffer);
-    gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1);
-    gl.glReadPixels(0, 0, width, height, GL.GL_RGB, GL.GL_UNSIGNED_BYTE, buffer);
-    
-    pixels = new int[width * height];
-    at = 0;
-    
-    for(int y=height-1; y>=0; y--){
-      for(int x=0; x<width; x++){
-        r = buffer.get(at++);
-        g = buffer.get(at++);
-        b = buffer.get(at++);
-        pixels[y*width+x] = 0xff000000 | (r & 0x000000ff) << 16 | (g & 0x000000ff) << 8 | (b & 0x000000ff);
-      }
-    }
-    
-    return pixels;
-  }
+	  }
+	  
+	  gl.glPopMatrix();
+	}
 
 	/**
-   * Grab a screen shot of the mesh.
-   * @return the screen shot represented as an ARGB image
-   */
-  public int[] grabImage()
-  {
-  	GRAB_IMAGE = true;
-  	refresh(true);
-    
-    while(GRAB_IMAGE){
-    	Utility.pause(100);
-    }
-  	
-  	return grabbed_image;
-  }
-
-	/**
-   * Update the translation of a rigid transformation.  Does nothing if this is the master transformation.
-   * However if this is an added mesh then it must first apply the inverse of the masters rotation to the
-   * translation.
-   * @param rt the rigid transformation to modify
-   * @param x the translation along the x-axis
-   * @param y the translation along the y-axis
-   * @param z the translation along the z-axis
-   */
-  public void update_translation(RigidTransformation rt, double x, double y, double z)
-  {
-  	if(rt == transformation){
-    	rt.tx += x;
-    	rt.ty += y;
-    	rt.tz += z;
-  	}else{
-  		Point t = Point.transform(rotation_last_inv, new Point(x, y, z));
-  		
-  		rt.tx += t.x;
-  		rt.ty += t.y;
-  		rt.tz += t.z;
-  	}
-  }
-  
-  /**
    * Bind any newly added textures.
    * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
    * @param FORCE set to true to force rebinding of textures
    */
-  public void bindTextures(GL gl, Mesh mesh, boolean FORCE)
+  private void bindTextures(GL gl, Mesh mesh, boolean FORCE)
   {
   	Vector<Texture> textures;
   	
@@ -1617,7 +1593,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
    * @param mesh the mesh to draw
    * @param scl the scale of the axis representing the principle components
    */
-  public void drawPCs(GL gl, Mesh mesh, float scl)
+  private void drawPCs(GL gl, Mesh mesh, float scl)
   {
   	Vector<Point> PC = mesh.getPC();
   	Point center = mesh.getCenter();
@@ -1648,7 +1624,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
    * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
    */
-  public void drawPoints(GL gl, Mesh mesh)
+  private void drawPoints(GL gl, Mesh mesh)
   {
   	Vector<Point> vertices = mesh.getVertices();
   	Vector<Color> vertex_colors = mesh.getVertexColors();
@@ -1678,7 +1654,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
    * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
    */
-  public void drawEdges(GL gl, Mesh mesh)
+  private void drawEdges(GL gl, Mesh mesh)
   {
   	Vector<Edge> edges = mesh.getEdges();
   	Vector<Point> vertices = mesh.getVertices();
@@ -1702,15 +1678,15 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
    * @param mesh the mesh to draw
    * @param M the current modelview matrix (stored elsewhere to prevent repeated extraction/conversion)
    */
-  public void drawOutline(GL gl, Mesh mesh, double[][] M)
+  private void drawOutline(GL gl, Mesh mesh, double[][] M)
   {
   	Vector<Point> vertices = mesh.getVertices();
   	Vector<Face> faces = mesh.getFaces();
-  	Vector<Boolean> faces_visible = mesh.getFacesVisible();
   	Vector<Edge> edges = mesh.getEdges();
   	Vector<Vector<Integer>> edge_incident_faces = mesh.getEdgeIncidentFaces();
   	Vector<Double> edge_dihedral_angles = mesh.getEdgeDihedralAngles();
-  	
+  	Vector<Boolean> face_visibility = new Vector<Boolean>(); face_visibility.ensureCapacity(faces.size());
+
     Point p;
     Point cam = new Point(0, 0, -1000);   //Viewing direction
     Point view = new Point();
@@ -1735,9 +1711,9 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
       tmpd = view.x * norm.x + view.y * norm.y + view.z * norm.z;
       
       if(tmpd > 0){ //Should be 0 but a little bit of tolerance looks better
-        faces_visible.set(i, true);
+        face_visibility.add(true);
       }else{
-        faces_visible.set(i, false);
+        face_visibility.add(false);
       }
     }
 
@@ -1755,7 +1731,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
       }
 
       //Silhouette
-      if(edge_incident_faces.get(i).size() > 1 && faces_visible.get(edge_incident_faces.get(i).get(0)) ^ faces_visible.get(edge_incident_faces.get(i).get(1))){
+      if(edge_incident_faces.get(i).size() > 1 && face_visibility.get(edge_incident_faces.get(i).get(0)) ^ face_visibility.get(edge_incident_faces.get(i).get(1))){
         outline_edges.add(i);
       }
     }
@@ -1784,7 +1760,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
    * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
    */
-  public void drawSolid(GL gl, Mesh mesh)
+  private void drawSolid(GL gl, Mesh mesh)
   {
   	Vector<Face> faces = mesh.getFaces();
   	Vector<Point> vertices = mesh.getVertices();
@@ -1813,7 +1789,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
    * @param mesh the mesh to draw
    * @param SMOOTH if true the vertex normals will be used instead of the face normals
    */
-  public void drawShaded(GL gl, Mesh mesh, boolean SMOOTH)
+  private void drawShaded(GL gl, Mesh mesh, boolean SMOOTH)
   {
   	bindTextures(gl, mesh, true);	//Note: must force rebinding in case the canvas is resized!
   	
@@ -1831,7 +1807,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
    * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
    */
-  public void drawShadedFlat(GL gl, Mesh mesh)
+  private void drawShadedFlat(GL gl, Mesh mesh)
   {
   	Vector<Point> vertices = mesh.getVertices();
   	Vector<Color> vertex_colors = mesh.getVertexColors();
@@ -1942,7 +1918,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
    * @param mesh the mesh to draw
    * @param selected_faces the faces to draw
    */
-  public void drawShadedFlat(GL gl, Mesh mesh, Vector<Integer> selected_faces)
+  private void drawShadedFlat(GL gl, Mesh mesh, Vector<Integer> selected_faces)
   {
   	Vector<Point> vertices = mesh.getVertices();
   	Vector<Face> faces = mesh.getFaces();
@@ -1982,7 +1958,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
    * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
    */
-  public void drawShadedSmooth(GL gl, Mesh mesh)
+  private void drawShadedSmooth(GL gl, Mesh mesh)
   {
   	Vector<Point> vertices = mesh.getVertices();
   	Vector<Point> vertex_normals = mesh.getVertexNormals();
@@ -2106,7 +2082,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
    * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
    */
-  public void drawShadedDegenerate(GL gl, Mesh mesh)
+  private void drawShadedDegenerate(GL gl, Mesh mesh)
   {
   	Vector<Point> vertices = mesh.getVertices();
   	Vector<Color> vertex_colors = mesh.getVertexColors();
@@ -2142,7 +2118,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
    * @param mesh the mesh to draw
    * @param M the current modelview matrix
    */
-  public void drawHighlights(GL gl, Mesh mesh, double[][] M)
+  private void drawHighlights(GL gl, Mesh mesh, double[][] M)
   {
   	Vector<Point> vertices = mesh.getVertices();
   	Vector<Point> vertex_normals = mesh.getVertexNormals();
@@ -2195,7 +2171,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
    * @param mesh the mesh to draw
    * @param M the current modelview matrix
    */
-  public void drawIllustration(GL gl, Mesh mesh, double[][] M)
+  private void drawIllustration(GL gl, Mesh mesh, double[][] M)
   {
   	Vector<Point> vertices = mesh.getVertices();
   	Vector<Point> vertex_normals = mesh.getVertexNormals();
@@ -2266,7 +2242,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
    * @param mesh the mesh to draw
    * @param M the current modelview matrix
    */
-  public void drawMetal(GL gl, Mesh mesh, double[][] M)
+  private void drawMetal(GL gl, Mesh mesh, double[][] M)
   {
   	Vector<Point> vertices = mesh.getVertices();
   	Vector<Face> faces = mesh.getFaces();
@@ -2313,6 +2289,30 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
       gl.glEnd();
     }
   }
+
+	/**
+	 * Update the translation of a rigid transformation.  Does nothing if this is the master transformation.
+	 * However if this is an added mesh then it must first apply the inverse of the masters rotation to the
+	 * translation.
+	 * @param rt the rigid transformation to modify
+	 * @param x the translation along the x-axis
+	 * @param y the translation along the y-axis
+	 * @param z the translation along the z-axis
+	 */
+	private void update_translation(RigidTransformation rt, double x, double y, double z)
+	{
+		if(rt == transformation){
+	  	rt.tx += x;
+	  	rt.ty += y;
+	  	rt.tz += z;
+		}else{
+			Point t = Point.transform(rotation_last_inv, new Point(x, y, z));
+			
+			rt.tx += t.x;
+			rt.ty += t.y;
+			rt.tz += t.z;
+		}
+	}
 
 	/**
    * Listener for mouse pressed events.  On left clicks the button pressed and the (x, y) coordinates
@@ -2648,23 +2648,23 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
         add(pathname + filename);
       }
     }else if(source == menuitem_EXPORT_JPG){
-      save(export_path, mesh.getMetaData("Name") + ".jpg");
+      save(export_path + mesh.getMetaData("Name") + ".jpg");
     }else if(source == menuitem_EXPORT_OBJ){
-      save(export_path, mesh.getMetaData("Name") + ".obj");
+      save(export_path + mesh.getMetaData("Name") + ".obj");
     }else if(source == menuitem_EXPORT_OBJ_BIN1){
-      save(export_path, mesh.getMetaData("Name") + ".obj_bin1");
+      save(export_path + mesh.getMetaData("Name") + ".obj_bin1");
     }else if(source == menuitem_EXPORT_OBJ_BIN2){
-      save(export_path, mesh.getMetaData("Name") + ".obj_bin2");
+      save(export_path + mesh.getMetaData("Name") + ".obj_bin2");
     }else if(source == menuitem_EXPORT_PLY){
-      save(export_path, mesh.getMetaData("Name") + ".ply");
+      save(export_path + mesh.getMetaData("Name") + ".ply");
     }else if(source == menuitem_EXPORT_VH){
-      save(export_path, mesh.getMetaData("Name") + ".vh"); 
+      save(export_path + mesh.getMetaData("Name") + ".vh"); 
     }else if(source == menuitem_EXPORT_WRL){
-      save(export_path, mesh.getMetaData("Name") + ".wrl");
+      save(export_path + mesh.getMetaData("Name") + ".wrl");
     }else if(source == menuitem_EXPORT_DEPTH){
-      save(export_path, mesh.getMetaData("Name") + ".pgm");
+      save(export_path + mesh.getMetaData("Name") + ".pgm");
     }else if(source == menuitem_EXPORT_POINTS_CAMERAS){
-      save(export_path, mesh.getMetaData("Name") + ".pc");
+      save(export_path + mesh.getMetaData("Name") + ".pc");
     }else if(source == menuitem_VIEW_GROUPS_ALL){
     	for(int i=0; i<menuitem_VIEW_GROUPS.size(); i++){
     		menuitem_VIEW_GROUPS.get(i).setState(!menuitem_VIEW_GROUPS.get(i).getState());

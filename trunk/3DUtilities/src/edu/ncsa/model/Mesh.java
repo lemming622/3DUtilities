@@ -30,7 +30,6 @@ public class Mesh
   private Vector<Vector<Integer>> edge_incident_faces = new Vector<Vector<Integer>>();
   private Vector<Vector<Integer>> vertex_incident_edges = new Vector<Vector<Integer>>();
   private Vector<Double> edge_dihedral_angles = new Vector<Double>();
-  private Vector<Boolean> faces_visible = new Vector<Boolean>();
   
   //Data used by metallic illustration rendering
   private Vector<Point> axis = new Vector<Point>();
@@ -143,7 +142,6 @@ public class Mesh
 	  edge_incident_faces = (Vector<Vector<Integer>>)Utility.deepCopy(m.edge_incident_faces);
 	  vertex_incident_edges = (Vector<Vector<Integer>>)Utility.deepCopy(m.vertex_incident_edges);
 	  edge_dihedral_angles = (Vector<Double>)Utility.deepCopy(m.edge_dihedral_angles);
-	  faces_visible = (Vector<Boolean>)Utility.deepCopy(m.faces_visible);
 	  
 	  axis = (Vector<Point>)Utility.deepCopy(m.axis);
 	  curvature = (Vector<Point>)Utility.deepCopy(m.curvature);
@@ -187,7 +185,6 @@ public class Mesh
 	  edge_incident_faces = m.edge_incident_faces; m.edge_incident_faces = new Vector<Vector<Integer>>();
 	  vertex_incident_edges = m.vertex_incident_edges; m.vertex_incident_edges = new Vector<Vector<Integer>>();
 	  edge_dihedral_angles = m.edge_dihedral_angles; m.edge_dihedral_angles = new Vector<Double>();
-	  faces_visible = m.faces_visible; m.faces_visible = new Vector<Boolean>();
 	  
 	  axis = m.axis; m.axis = new Vector<Point>();
 	  curvature = m.curvature; m.curvature = new Vector<Point>();
@@ -223,7 +220,6 @@ public class Mesh
 	  edge_incident_faces.clear();
 	  vertex_incident_edges.clear();
 	  edge_dihedral_angles.clear();
-	  faces_visible.clear();
 	
 	  axis.clear();
 	  curvature.clear();
@@ -657,16 +653,6 @@ public class Mesh
 	{
 		initialize_topology();
 		initialize_positions();
-		
-	  //Initialize visible faces
-	  faces_visible.clear();
-	  faces_visible.ensureCapacity(faces.size());
-	  
-	  if(!faces.isEmpty()){
-	    for(int i=0; i<faces.size(); i++){
-	      faces_visible.add(true);
-	    }
-	  }
 	  
 	  INITIALIZED_METAL = false;
 	  
@@ -871,15 +857,6 @@ public class Mesh
 	{
 	  return faces.get(i).material;
 	}
-
-	/**
-   * Get the list of visible faces.
-   * @return the list of visible faces
-   */
-  public Vector<Boolean> getFacesVisible()
-  {
-  	return faces_visible;
-  }
   
   /**
    * Set the vector of faces in the mesh.
