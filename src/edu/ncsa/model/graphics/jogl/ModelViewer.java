@@ -1,12 +1,9 @@
-package edu.ncsa.model;
+package edu.ncsa.model.graphics.jogl;
+import edu.ncsa.model.*;
 import edu.ncsa.model.Mesh.*;
 import edu.ncsa.model.MeshAuxiliary.*;
 import edu.ncsa.model.MeshAuxiliary.Color;
-import edu.ncsa.model.MeshAuxiliary.RigidTransformation;
 import edu.ncsa.model.MeshAuxiliary.Point;
-import edu.ncsa.model.MeshAuxiliary.Face;
-import edu.ncsa.model.MeshAuxiliary.Texture;
-import edu.ncsa.model.MeshAuxiliary.Material;
 import edu.ncsa.image.*;
 import edu.ncsa.matrix.*;
 import edu.ncsa.utility.*;
@@ -24,7 +21,7 @@ import javax.media.opengl.glu.*;
 
 /**
  * A panel that allows for the display and manipulation of 3D objects.
- *  @author Kenton McHenry
+ * @author Kenton McHenry
  */
 public class ModelViewer extends JPanel implements Runnable, GLEventListener, KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, ActionListener
 {
@@ -203,8 +200,8 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   
   /**
    * Class Constroctur specifying the INI file to load.
-   *  @param filename INI file name containing initialization values
-   *  @param DISABLE_HEAVYWEIGHT disable heavyweight GLCanvas (sacrificing performance for functionality)
+   * @param filename INI file name containing initialization values
+   * @param DISABLE_HEAVYWEIGHT disable heavyweight GLCanvas (sacrificing performance for functionality)
    */
   public ModelViewer(String filename, boolean DISABLE_HEAVYWEIGHT)
   {
@@ -215,11 +212,11 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
    * Class Constructor specifying INI file, initial dimensions and whether or not
    * to load the default model from the INI file or not.  The construct also builds the pop
    * up menu and starts a thread used to refresh the scene.
-   *  @param filename INI file name containing initialization values
-   *  @param w width of viewer
-   *  @param h height of viewer
-   *  @param DISABLE_HEAVYWEIGHT disable heavyweight GLCanvas (sacrificing performance for functionality)
-   *  @param LOAD_DEFAULT if false the viewer will not load the default model from the INI file
+   * @param filename INI file name containing initialization values
+   * @param w width of viewer
+   * @param h height of viewer
+   * @param DISABLE_HEAVYWEIGHT disable heavyweight GLCanvas (sacrificing performance for functionality)
+   * @param LOAD_DEFAULT if false the viewer will not load the default model from the INI file
    */
   public ModelViewer(String filename, int w, int h, boolean DISABLE_HEAVYWEIGHT, boolean LOAD_DEFAULT)
   {
@@ -279,7 +276,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   
   /**
    * Load initialization file containing inital values for the viewer.
-   *  @param fis the file input stream (note this is friendly to applets!)
+   * @param fis the file input stream (note this is friendly to applets!)
    */
   public void loadINI(FileInputStream fis)
   {
@@ -364,8 +361,8 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 
 	/**
    * Add components to the canvas component rather than this panel.
-   *  @param c the component to add
-   *  @return null
+   * @param c the component to add
+   * @return null
    */
   public Component add(Component c)
   {
@@ -379,7 +376,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 
 	/**
    * Remove components from the canvas component rather than this panel.
-   *  @param c the component to remove
+   * @param c the component to remove
    */
   public void remove(Component c)
   {
@@ -391,8 +388,8 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 
 	/**
    * Sets the size of the viewer, the canvas and the mesh to best fit the new viewers size.
-   *  @param w the new viewer width
-   *  @param h the new viewer height
+   * @param w the new viewer width
+   * @param h the new viewer height
    */
   public void setSize(int w, int h)
   {
@@ -421,9 +418,9 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 
 	/**
    * Set the model adjustments.
-   *  @param tx the x-offset
-   *  @param ty the y-offset
-   *  @param scl the scale change
+   * @param tx the x-offset
+   * @param ty the y-offset
+   * @param scl the scale change
    */
   public void setAdjustments(float tx, float ty, float scl)
   {
@@ -642,7 +639,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 
 	/**
    * Set the mesh structure.
-   *  @param mesh the mesh to display
+   * @param mesh the mesh to display
    */
   public synchronized void setMesh(Mesh mesh)
   {
@@ -663,7 +660,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     if(ADJUST) mesh.center(0.8f*((width<height)?width:height)/2.0f);
     
     //If no faces then display points
-    POINTS = POINTS || mesh.faces.isEmpty();
+    POINTS = POINTS || mesh.getFaces().isEmpty();
     if(menuitem_POINTS != null) menuitem_POINTS.setSelected(POINTS); 
     
     //If colors then enable materials
@@ -715,8 +712,8 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   
   /**
    * Load model into our mesh structure.
-   *  @param filename the absolute name of the file
-   *  @param progressCallBack the callback handling progress updates
+   * @param filename the absolute name of the file
+   * @param progressCallBack the callback handling progress updates
    */
   public void load(String filename, ProgressEvent progressCallBack)
   {
@@ -739,7 +736,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   
 	/**
    * Load model into our mesh structure.
-   *  @param filename the absolute name of the file
+   * @param filename the absolute name of the file
    */
   public void load(String filename)
   {
@@ -748,7 +745,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 
 	/**
    * Add a secondary model to the viewer.
-   *  @param filename the absolute name of the file
+   * @param filename the absolute name of the file
    */
   public void add(String filename)
   {
@@ -779,8 +776,8 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 
 	/**
    * Save contents of our mesh structure.
-   *  @param pathname path to the new model
-   *  @param filename file name of the new model
+   * @param pathname path to the new model
+   * @param filename file name of the new model
    */
   public void save(String pathname, String filename)
   {
@@ -868,8 +865,8 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 
 	/**
    * Save a view (image + camera paramters).
-   *  @param gl the OpenGL context
-   *  @param path the folder to save to
+   * @param gl the OpenGL context
+   * @param path the folder to save to
    */
   private void saveVisualHullView(GL gl, String path)
   {
@@ -1103,7 +1100,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 
 	/**
    * Initialize the OpenGL canvas.
-   *  @param drawable the OpenGL context to render to
+   * @param drawable the OpenGL context to render to
    */
   public void init(GLAutoDrawable drawable)
   {
@@ -1382,9 +1379,9 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 
 	/**
    * Draw the reference axis to the given OpenGL context.
-   *  @param gl the OpenGL context
-   *  @param scale the scale of the axis (relative to the window width/height)
-   *  @param line_width the width of the lines when rendering the axis
+   * @param gl the OpenGL context
+   * @param scale the scale of the axis (relative to the window width/height)
+   * @param line_width the width of the lines when rendering the axis
    */
   private void drawAxis(GL gl, float scale, int line_width)
   {
@@ -1414,9 +1411,9 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 
 	/**
    * Draw the reference axis to the given OpenGL context.
-   *  @param gl the OpenGL context
-   *  @param scale the scale of the axis
-   *  @param line_width the width of the lines when rendering the axis
+   * @param gl the OpenGL context
+   * @param scale the scale of the axis
+   * @param line_width the width of the lines when rendering the axis
    */
   private void drawCalibrationAxis(GL gl, float scale, int line_width)
   {
@@ -1508,9 +1505,9 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   
 	/**
    * Grab the currently rendered image from the OpenGL context.
-   *  @param gl the OpenGL context
-   *  @param gl_color_buffer the OpenGL color buffer to read from
-   *  @return the image data in ARGB row major order
+   * @param gl the OpenGL context
+   * @param gl_color_buffer the OpenGL color buffer to read from
+   * @return the image data in ARGB row major order
    */
   public int[] grabImage(GL gl, int gl_color_buffer)
   {
@@ -1539,7 +1536,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 
 	/**
    * Grab a screen shot of the mesh.
-   *  @return the screen shot represented as an ARGB image
+   * @return the screen shot represented as an ARGB image
    */
   public int[] grabImage()
   {
@@ -1557,10 +1554,10 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
    * Update the translation of a rigid transformation.  Does nothing if this is the master transformation.
    * However if this is an added mesh then it must first apply the inverse of the masters rotation to the
    * translation.
-   *  @param rt the rigid transformation to modify
-   *  @param x the translation along the x-axis
-   *  @param y the translation along the y-axis
-   *  @param z the translation along the z-axis
+   * @param rt the rigid transformation to modify
+   * @param x the translation along the x-axis
+   * @param y the translation along the y-axis
+   * @param z the translation along the z-axis
    */
   public void update_translation(RigidTransformation rt, double x, double y, double z)
   {
@@ -1579,7 +1576,9 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   
   /**
    * Bind any newly added textures.
-   *  @param FORCE set to true to force rebinding of textures
+   * @param gl the OpenGL context to render to
+   * @param mesh the mesh to draw
+   * @param FORCE set to true to force rebinding of textures
    */
   public void bindTextures(GL gl, Mesh mesh, boolean FORCE)
   {
@@ -1614,8 +1613,9 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   
   /**
    * Draw the principal components of the currently loaded model.
-   *  @param gl the OpenGL context to render to
-   *  @param scl the scale of the axis representing the principle components
+   * @param gl the OpenGL context to render to
+   * @param mesh the mesh to draw
+   * @param scl the scale of the axis representing the principle components
    */
   public void drawPCs(GL gl, Mesh mesh, float scl)
   {
@@ -1645,7 +1645,8 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   
   /**
    * Draw the models points.
-   *  @param gl the OpenGL context to render to
+   * @param gl the OpenGL context to render to
+   * @param mesh the mesh to draw
    */
   public void drawPoints(GL gl, Mesh mesh)
   {
@@ -1674,7 +1675,8 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   
   /**
    * Draw the models edges.
-   *  @param gl the OpenGL context to render to
+   * @param gl the OpenGL context to render to
+   * @param mesh the mesh to draw
    */
   public void drawEdges(GL gl, Mesh mesh)
   {
@@ -1696,8 +1698,9 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   
   /**
    * Draw the occluding and critical edges of the model.
-   *  @param gl the OpenGL context to render to
-   *  @param M the current modelview matrix (stored elsewhere to prevent repeated extraction/conversion)
+   * @param gl the OpenGL context to render to
+   * @param mesh the mesh to draw
+   * @param M the current modelview matrix (stored elsewhere to prevent repeated extraction/conversion)
    */
   public void drawOutline(GL gl, Mesh mesh, double[][] M)
   {
@@ -1778,7 +1781,8 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   
   /**
    * Draw the unshaded faces is a solid color.
-   *  @param gl the OpenGL context to render to
+   * @param gl the OpenGL context to render to
+   * @param mesh the mesh to draw
    */
   public void drawSolid(GL gl, Mesh mesh)
   {
@@ -1805,8 +1809,9 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   
   /**
    * Draw the shaded faces of the model.
-   *  @param gl the OpenGL context to render to
-   *  @param SMOOTH if true the vertex normals will be used instead of the face normals
+   * @param gl the OpenGL context to render to
+   * @param mesh the mesh to draw
+   * @param SMOOTH if true the vertex normals will be used instead of the face normals
    */
   public void drawShaded(GL gl, Mesh mesh, boolean SMOOTH)
   {
@@ -1823,7 +1828,8 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   
   /**
    * Draw the flat shaded faces of the model.
-   *  @param gl the OpenGL context to render to
+   * @param gl the OpenGL context to render to
+   * @param mesh the mesh to draw
    */
   public void drawShadedFlat(GL gl, Mesh mesh)
   {
@@ -1932,8 +1938,9 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   
   /**
    * Draw the flat shaded selected faces of the model.  Note, color can and should be set externally!
-   *  @param gl the OpenGL context to render to
-   *  @param selected_faces the faces to draw
+   * @param gl the OpenGL context to render to
+   * @param mesh the mesh to draw
+   * @param selected_faces the faces to draw
    */
   public void drawShadedFlat(GL gl, Mesh mesh, Vector<Integer> selected_faces)
   {
@@ -1972,7 +1979,8 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   
   /**
    * Draw the smooth shaded faces of the model using vertex colors.
-   *  @param gl the OpenGL context to render to
+   * @param gl the OpenGL context to render to
+   * @param mesh the mesh to draw
    */
   public void drawShadedSmooth(GL gl, Mesh mesh)
   {
@@ -2095,7 +2103,8 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   
   /**
    * Draw degenerate polygons (i.e. edges).
-   *  @param gl the OpenGL context to render to
+   * @param gl the OpenGL context to render to
+   * @param mesh the mesh to draw
    */
   public void drawShadedDegenerate(GL gl, Mesh mesh)
   {
@@ -2129,8 +2138,9 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   /**
    * Draw the faces shading them only with regards to a specular compent.  This is done in a manner
    * similar to that in drawIllustration.
-   *  @param gl the OpenGL context to render to
-   *  @param M the current modelview matrix
+   * @param gl the OpenGL context to render to
+   * @param mesh the mesh to draw
+   * @param M the current modelview matrix
    */
   public void drawHighlights(GL gl, Mesh mesh, double[][] M)
   {
@@ -2181,8 +2191,9 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   /**
    * Draw the faces shaded in a non-photorealistic manner that is similar to book illustrations which
    * emphasize shape within the rendering [Gooch et al., SIGGRAPH 1998].
-   *  @param gl the OpenGL context to render to
-   *  @param M the current modelview matrix
+   * @param gl the OpenGL context to render to
+   * @param mesh the mesh to draw
+   * @param M the current modelview matrix
    */
   public void drawIllustration(GL gl, Mesh mesh, double[][] M)
   {
@@ -2251,8 +2262,9 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   /**
    * Draw the faces shaded in a non-photorealistic manner that is similar to 
    * metallic illustrations [Gooch et al., SIGGRAPH 1998].
-   *  @param gl the OpenGL context to render to
-   *  @param M the current modelview matrix
+   * @param gl the OpenGL context to render to
+   * @param mesh the mesh to draw
+   * @param M the current modelview matrix
    */
   public void drawMetal(GL gl, Mesh mesh, double[][] M)
   {
@@ -2305,7 +2317,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 	/**
    * Listener for mouse pressed events.  On left clicks the button pressed and the (x, y) coordinates
    * are stored.  In addition we enable refreshing of the display. On right clicks a menu is displayed.
-   *  @param e the mouse event
+   * @param e the mouse event
    */
   public void mousePressed(MouseEvent e)
   {
@@ -2376,7 +2388,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
    * Listener for mouse dragged events.  If the last pressed button was the left one then
    * adjust the translation of the scene if the shift button is also down or the rotation of the
    * scene otherwise.
-   *  @param e the mouse event
+   * @param e the mouse event
    */
   public void mouseDragged(MouseEvent e)
   {
@@ -2426,7 +2438,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   
   /**
    * Listener for mouse released events.
-   *  @param e the mouse event
+   * @param e the mouse event
    */
   public void mouseReleased(MouseEvent e)
   {
@@ -2508,7 +2520,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   
   /** 
    * Listener for mouse wheel events.  Zoom in our out depending on wheel motion's direction.
-   *  @param e mouse wheel event
+   * @param e mouse wheel event
    */
   public void mouseWheelMoved(MouseWheelEvent e)
   {
@@ -2533,7 +2545,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   
   /**
    * Listener for keyboard events.
-   *  @param e the keyboard event
+   * @param e the keyboard event
    */
   public void keyPressed(KeyEvent e)
   {
@@ -2613,7 +2625,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   
   /**
    * Listener for action events.  Deals with clicked buttons and selected menus.
-   *  @param e the action event
+   * @param e the action event
    */
   public void actionPerformed(ActionEvent e)
   {
@@ -2913,7 +2925,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   /**
    * The paintComponent function for the panel.  In addition to calling the default JPanel paintComponent,
    * this function also resizes the viewer if it has changed.
-   *  @param g the graphics context to paint to
+   * @param g the graphics context to paint to
    */
   public void paintComponent(Graphics g)
   {
@@ -2950,7 +2962,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 
 	/**
    * The main function used if this class is run by itself.
-   *  @param args not used
+   * @param args not used
    */
   public static void main(String args[])
   {

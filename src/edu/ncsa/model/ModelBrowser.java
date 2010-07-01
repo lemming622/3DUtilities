@@ -1,5 +1,6 @@
 package edu.ncsa.model;
 import edu.ncsa.model.ModelBrowserAuxiliary.*;
+import edu.ncsa.model.graphics.jogl.*;
 import edu.ncsa.image.*;
 import edu.ncsa.utility.*;
 import edu.ncsa.model.MeshLoader.ProgressEvent;
