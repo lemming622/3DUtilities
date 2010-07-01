@@ -508,7 +508,7 @@ public class ModelBrowser extends JPanel implements ActionListener, TreeSelectio
 			    			ModelViewer mv = new ModelViewer("ModelViewer.ini", 100, 100, false, false);
 			    			mv.load(fileinfo.get(i).absolutename);
 			    			mv.activate();
-			    			mv.save(metadata_path, thumb_image);
+			    			mv.save(metadata_path + thumb_image);
 			    			fileinfo.get(i).thumb_image = thumb_image;
 			    			
 			    			//Debug: view the thumbnails

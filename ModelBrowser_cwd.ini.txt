@@ -1,7 +1,0 @@
-LoadPath=data/Models
-MetaDataPath=data/MetaData
-Polyglot=http://teeve3.ncsa.uiuc.edu
-ConvertableList=polyglotDomain_OBJ.txt
-TransparentPanels=false
-WiiMote=false
-RebuildThumbs=false
