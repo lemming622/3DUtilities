@@ -1419,7 +1419,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 	/**
    * Rebuild the display list.
    */
-  public void refreshList()
+  private void refreshList()
   {
     list_id = 0;
   }
