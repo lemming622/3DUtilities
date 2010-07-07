@@ -36,8 +36,6 @@ public class ModelViewer extends JPanel implements ActionListener, MouseListener
 
   public int width = 600;                //Window width
   public int height = 600;               //Window height
-  private int halfwidth = width / 2;
-  private int halfheight = height / 2;
   private double vleft = -width / 2.0;   //Left of viewport
   private double vright = width / 2.0;   //Right
   private double vbottom = height / 2.0; //Bottom
@@ -74,8 +72,6 @@ public class ModelViewer extends JPanel implements ActionListener, MouseListener
     if(w >= 0 && h >= 0){
       width = w;
       height = h;
-      halfwidth = width / 2;
-      halfheight = height / 2;
       vleft = -width / 2.0;
       vright = width / 2.0;
       vbottom = height / 2.0;
