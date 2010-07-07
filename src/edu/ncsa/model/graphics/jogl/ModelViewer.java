@@ -2954,7 +2954,6 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     	}
     	
     	Thread.yield();
-    	Utility.pause(100);
     }
     
     System.exit(0);
