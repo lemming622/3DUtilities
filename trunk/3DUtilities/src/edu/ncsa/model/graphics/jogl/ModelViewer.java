@@ -15,7 +15,6 @@ import java.awt.image.*;
 import java.io.*;
 import java.util.*;
 import java.nio.*;
-
 import javax.imageio.*;
 import javax.media.opengl.*;
 import javax.media.opengl.glu.*;
@@ -200,9 +199,9 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   public ModelViewer() {}
   
   /**
-   * Class Constroctur specifying the INI file to load.
+   * Class constructor specifying the INI file to load.
    * @param filename INI file name containing initialization values
-   * @param DISABLE_HEAVYWEIGHT disable heavyweight GLCanvas (sacrificing performance for functionality)
+   * @param DISABLE_HEAVYWEIGHT disable heavy-weight GLCanvas (sacrificing performance for functionality)
    */
   public ModelViewer(String filename, boolean DISABLE_HEAVYWEIGHT)
   {
@@ -210,13 +209,13 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   }
   
   /**
-   * Class Constructor specifying INI file, initial dimensions and whether or not
+   * Class constructor specifying INI file, initial dimensions and whether or not
    * to load the default model from the INI file or not.  The construct also builds the pop
    * up menu and starts a thread used to refresh the scene.
    * @param filename INI file name containing initialization values
    * @param w width of viewer
    * @param h height of viewer
-   * @param DISABLE_HEAVYWEIGHT disable heavyweight GLCanvas (sacrificing performance for functionality)
+   * @param DISABLE_HEAVYWEIGHT disable heavy-weight GLCanvas (sacrificing performance for functionality)
    * @param LOAD_DEFAULT if false the viewer will not load the default model from the INI file
    */
   public ModelViewer(String filename, int w, int h, boolean DISABLE_HEAVYWEIGHT, boolean LOAD_DEFAULT)
@@ -276,7 +275,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   }
   
   /**
-   * Load initialization file containing inital values for the viewer.
+   * Load initialization file containing initial values for the viewer.
    * @param fis the file input stream (note this is friendly to applets!)
    */
   public void loadINI(FileInputStream fis)
@@ -1192,7 +1191,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 
 	/**
    * Render the scene.
-   *  @param drawable the OpenGL context to render to
+   * @param drawable the OpenGL context to render to
    */
   public synchronized void display(GLAutoDrawable drawable)
   {
@@ -2955,6 +2954,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     	}
     	
     	Thread.yield();
+    	Utility.pause(100);
     }
     
     System.exit(0);

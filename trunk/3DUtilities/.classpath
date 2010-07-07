@@ -67,5 +67,13 @@
 	<classpathentry kind="lib" path="lib/ncsa/3DUtilities_Loaders.jar"/>
 	<classpathentry kind="lib" path="lib/jogl-1.1.1a/gluegen-rt.jar"/>
 	<classpathentry kind="lib" path="lib/jogl-1.1.1a/jogl.jar"/>
+	<classpathentry kind="lib" path="lib/lwjgl-2.4.2/jar/AppleJavaExtensions.jar"/>
+	<classpathentry kind="lib" path="lib/lwjgl-2.4.2/jar/jinput.jar"/>
+	<classpathentry kind="lib" path="lib/lwjgl-2.4.2/jar/lwjgl_test.jar"/>
+	<classpathentry kind="lib" path="lib/lwjgl-2.4.2/jar/lwjgl_util_applet.jar"/>
+	<classpathentry kind="lib" path="lib/lwjgl-2.4.2/jar/lwjgl_util.jar"/>
+	<classpathentry kind="lib" path="lib/lwjgl-2.4.2/jar/lwjgl-debug.jar"/>
+	<classpathentry kind="lib" path="lib/lwjgl-2.4.2/jar/lwjgl.jar"/>
+	<classpathentry kind="lib" path="lib/lwjgl-2.4.2/jar/lzma.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
