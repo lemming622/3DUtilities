@@ -9,7 +9,6 @@ import java.nio.*;
 import java.util.*;
 import javax.imageio.*;
 import javax.swing.JFrame;
-import com.sun.opengl.util.*;
 import gov.fpl.optimization.*;
 
 /**
@@ -1840,7 +1839,7 @@ public class MeshAuxiliary
   		
   		this.name = name;
   		argb = img;
-  		buffer = BufferUtil.newByteBuffer(3*n*n);
+  		buffer = ByteBuffer.allocateDirect(3*n*n);
   		w = n;
   		h = n;
   		

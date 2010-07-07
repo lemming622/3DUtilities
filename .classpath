@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
+	<classpathentry excluding="edu/ncsa/model/graphics/jogl2/" kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/jama-1.0.2/Jama-1.0.2.jar"/>
 	<classpathentry kind="lib" path="lib/wiiusej-0.12b/wiiusej.jar"/>
@@ -22,7 +22,6 @@
 	<classpathentry kind="lib" path="lib/j3d/xj3d-1.0/j3d-org.jar"/>
 	<classpathentry kind="lib" path="lib/j3d/xj3d-1.0/jinput.jar"/>
 	<classpathentry kind="lib" path="lib/j3d/xj3d-1.0/joal.jar"/>
-	<classpathentry kind="lib" path="lib/j3d/xj3d-1.0/jogl.jar"/>
 	<classpathentry kind="lib" path="lib/j3d/xj3d-1.0/js.jar"/>
 	<classpathentry kind="lib" path="lib/j3d/xj3d-1.0/jutils.jar"/>
 	<classpathentry kind="lib" path="lib/j3d/xj3d-1.0/log4j.jar"/>
@@ -65,8 +64,6 @@
 	<classpathentry kind="lib" path="lib/misc/jzlib.jar"/>
 	<classpathentry kind="lib" path="lib/ncsa/MLUtilities.jar"/>
 	<classpathentry kind="lib" path="lib/ncsa/3DUtilities_Loaders.jar"/>
-	<classpathentry kind="lib" path="lib/jogl-1.1.1a/gluegen-rt.jar"/>
-	<classpathentry kind="lib" path="lib/jogl-1.1.1a/jogl.jar"/>
 	<classpathentry kind="lib" path="lib/lwjgl-2.4.2/jar/AppleJavaExtensions.jar"/>
 	<classpathentry kind="lib" path="lib/lwjgl-2.4.2/jar/jinput.jar"/>
 	<classpathentry kind="lib" path="lib/lwjgl-2.4.2/jar/lwjgl_test.jar"/>
@@ -75,5 +72,7 @@
 	<classpathentry kind="lib" path="lib/lwjgl-2.4.2/jar/lwjgl-debug.jar"/>
 	<classpathentry kind="lib" path="lib/lwjgl-2.4.2/jar/lwjgl.jar"/>
 	<classpathentry kind="lib" path="lib/lwjgl-2.4.2/jar/lzma.jar"/>
+	<classpathentry kind="lib" path="lib/jogl-1.1.1a/gluegen-rt.jar"/>
+	<classpathentry kind="lib" path="lib/jogl-1.1.1a/jogl.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
