@@ -248,12 +248,12 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     setBackground(java.awt.Color.white);
     super.setSize(width, height);
     setLayout(null);
-        	
+    
     GLCapabilities capabilities = new GLCapabilities(GLProfile.get(GLProfile.GL2));
   	capabilities.setDoubleBuffered(true);
     capabilities.setStencilBits(1);
     capabilities.setSampleBuffers(true);
-    capabilities.setNumSamples(4);
+    //capabilities.setNumSamples(4);
     
     if(!DISABLE_HEAVYWEIGHT){
     	canvas = new GLCanvas(capabilities);
@@ -267,6 +267,11 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     	((GLJPanel)canvas).addGLEventListener(this);
     	((GLJPanel)canvas).setLayout(null);
     }
+    
+    canvas.addKeyListener(this);
+    canvas.addMouseListener(this);
+    canvas.addMouseMotionListener(this);
+    canvas.addMouseWheelListener(this);  
     
     canvas.setLocation(0, 0);
     canvas.setSize(width, height);
@@ -1180,13 +1185,6 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
       gl.glEnable(GL2.GL_LINE_SMOOTH);
       gl.glEnable(GL2.GL_POLYGON_SMOOTH);
     }
-    
-    /*
-    drawable.addKeyListener(this);
-    drawable.addMouseListener(this);
-    drawable.addMouseMotionListener(this);
-    drawable.addMouseWheelListener(this);
-    */
     
     gl.glMatrixMode(GL2.GL_PROJECTION);
     gl.glLoadIdentity();
