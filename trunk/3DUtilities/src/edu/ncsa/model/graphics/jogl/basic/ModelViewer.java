@@ -23,11 +23,6 @@ public class ModelViewer extends JPanel implements GLEventListener, MouseListene
   private int list_id = 0;
   private Timer timer = new Timer(10, this);
   
-  private float[] light0_position = {0.0f, 0.0f, 1.0f, 0.0f};
-  private float[] light1_position = {0.0f, 0.0f, -1.0f, 0.0f};
-  private float[] light_diff = {0.7f, 0.7f, 0.7f, 1.0f};    
-  private float[] model_ambient = {0.5f, 0.5f, 0.5f, 1.0f}; 
-  
 	public String load_path = "./";
   private boolean LOAD_DEFAULT = true;
 
@@ -243,6 +238,11 @@ public class ModelViewer extends JPanel implements GLEventListener, MouseListene
    */
   public void init(GLAutoDrawable drawable)
   {
+    float[] light0_position = {0.0f, 0.0f, 1.0f, 0.0f};
+    float[] light1_position = {0.0f, 0.0f, -1.0f, 0.0f};
+    float[] light_diff = {0.7f, 0.7f, 0.7f, 1.0f};    
+    float[] model_ambient = {0.5f, 0.5f, 0.5f, 1.0f}; 
+    
     GL gl = drawable.getGL();
     gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
   	gl.glColor3f(0.5f, 0.5f, 0.5f);
