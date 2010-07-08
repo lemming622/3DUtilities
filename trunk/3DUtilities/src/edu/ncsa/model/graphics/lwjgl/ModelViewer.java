@@ -10,23 +10,21 @@ import edu.ncsa.utility.*;
 import edu.ncsa.model.MeshLoader.ProgressEvent;
 import javax.swing.*;
 import javax.swing.Timer;
-
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
 import java.io.*;
 import java.util.*;
 import java.nio.*;
-
 import javax.imageio.*;
-import javax.media.opengl.*;
-import javax.media.opengl.glu.*;
+import org.lwjgl.opengl.*;
+import org.lwjgl.util.glu.*;
 
 /**
  * A panel that allows for the display and manipulation of 3D objects.
  * @author Kenton McHenry
  */
-public class ModelViewer extends JPanel implements GLEventListener, KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, ActionListener
+public class ModelViewer extends JPanel implements KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, ActionListener
 {
   public Mesh mesh = new Mesh();
   public double[][] rotation_last = MatrixUtility.eye(4);
@@ -34,7 +32,13 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
   public RigidTransformation transformation = new RigidTransformation();
   private Class Signature = null;
   private int list_id = 0;
+  
   private Timer timer = new Timer(10, this);
+  private Pbuffer pbuffer;
+  private BufferedImage buffered_image;
+  private int[] image;
+  private IntBuffer int_buffer;
+  private boolean INITIALIZED = false;
 
 	private Vector<Mesh> added_meshes = new Vector<Mesh>();
 	private Vector<double[][]> added_rotation_last = new Vector<double[][]>();
@@ -47,12 +51,16 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
   private float adj_ty = 0;							 //Model adjustment in the y-direction
   private float adj_scl = 1;						 //Model scale adjustment
   
-  private float[] light0_position = {0.0f, 0.0f, 1.0f, 0.0f};
-  private float[] light1_position = {0.0f, 0.0f, -1.0f, 0.0f};
-  private float[] light_diff = {0.7f, 0.7f, 0.7f, 1.0f};    
-  private float[] model_ambient = {0.5f, 0.5f, 0.5f, 1.0f}; 
-  
+  private FloatBuffer light0_position = toFloatBuffer(new float[]{0.0f, 0.0f, 1.0f, 0.0f});
+  private FloatBuffer light1_position = toFloatBuffer(new float[]{0.0f, 0.0f, -1.0f, 0.0f});
+  private FloatBuffer light_diffuse = toFloatBuffer(new float[]{0.7f, 0.7f, 0.7f, 1.0f});
+  private FloatBuffer light_ambient = toFloatBuffer(new float[]{0.5f, 0.5f, 0.5f, 1.0f});
+  private FloatBuffer default_material_ambient = toFloatBuffer(new float[]{0.2f, 0.2f, 0.2f, 1.0f});
+	private FloatBuffer default_material_diffuse = toFloatBuffer(new float[]{0.8f, 0.8f, 0.8f, 1.0f});
+	
   //Declared here to prevent from being re-allocated in display()!
+	private DoubleBuffer projection_buffer = ByteBuffer.allocateDirect(16*8).order(ByteOrder.nativeOrder()).asDoubleBuffer();
+	private DoubleBuffer modelview_buffer = ByteBuffer.allocateDirect(16*8).order(ByteOrder.nativeOrder()).asDoubleBuffer();
   private double[] projection_tmp = new double[16];
   private double[] modelview_tmp = new double[16];
   private double[][] projection = new double[4][4];
@@ -78,7 +86,6 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
   protected int last_x;
   protected int last_y;
   
-  public Component canvas;
   private JPopupMenu popup_menu;
   private JMenuItem menuitem_OPEN;
   private JMenuItem menuitem_ADD;
@@ -205,11 +212,10 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
   /**
    * Class constructor specifying the INI file to load.
    * @param filename INI file name containing initialization values
-   * @param DISABLE_HEAVYWEIGHT disable heavy-weight GLCanvas (sacrificing performance for functionality)
    */
-  public ModelViewer(String filename, boolean DISABLE_HEAVYWEIGHT)
+  public ModelViewer(String filename)
   {
-    this(filename, 0, 0, DISABLE_HEAVYWEIGHT, true);
+    this(filename, 0, 0, true);
   }
   
   /**
@@ -219,10 +225,9 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
    * @param filename INI file name containing initialization values
    * @param w width of viewer
    * @param h height of viewer
-   * @param DISABLE_HEAVYWEIGHT disable heavy-weight GLCanvas (sacrificing performance for functionality)
    * @param LOAD_DEFAULT if false the viewer will not load the default model from the INI file
    */
-  public ModelViewer(String filename, int w, int h, boolean DISABLE_HEAVYWEIGHT, boolean LOAD_DEFAULT)
+  public ModelViewer(String filename, int w, int h, boolean LOAD_DEFAULT)
   {
     if(w > 0 && h > 0){
       width = w;
@@ -247,31 +252,10 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
     setBackground(java.awt.Color.white);
     super.setSize(width, height);
     setLayout(null);
-        	
-    GLCapabilities capabilities = new GLCapabilities();
-  	capabilities.setDoubleBuffered(true);
-    capabilities.setStencilBits(1);
-    capabilities.setSampleBuffers(true);
-    capabilities.setNumSamples(4);
-    
-    if(!DISABLE_HEAVYWEIGHT){
-    	canvas = new GLCanvas(capabilities);
-    }else{
-    	canvas = new GLJPanel(capabilities);
-    }
-    
-    if(canvas instanceof GLCanvas){
-    	((GLCanvas)canvas).addGLEventListener(this);
-    }else if(canvas instanceof GLJPanel){
-    	((GLJPanel)canvas).addGLEventListener(this);
-    	((GLJPanel)canvas).setLayout(null);
-    }
-    
-    canvas.setLocation(0, 0);
-    canvas.setSize(width, height);
-    canvas.setFocusable(true);
-    canvas.requestFocus();
-    super.add(canvas);
+    addKeyListener(this);
+    addMouseListener(this);
+    addMouseMotionListener(this);
+    addMouseWheelListener(this);
     
     setPopupMenu();
     start();
@@ -363,33 +347,6 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
   }
 
 	/**
-   * Add components to the canvas component rather than this panel.
-   * @param c the component to add
-   * @return null
-   */
-  public Component add(Component c)
-  {
-  	if(canvas instanceof GLJPanel){
-  		((GLJPanel)canvas).add(c);
-  		//canvas_panel.add(c);
-  	}
-  	
-  	return null;
-  }
-
-	/**
-   * Remove components from the canvas component rather than this panel.
-   * @param c the component to remove
-   */
-  public void remove(Component c)
-  {
-  	if(canvas instanceof GLJPanel){
-  		((GLJPanel)canvas).add(c);
-  		//canvas_panel.remove(c);
-  	}
-  }
-
-	/**
    * Sets the size of the viewer, the canvas and the mesh to best fit the new viewers size.
    * @param w the new viewer width
    * @param h the new viewer height
@@ -406,7 +363,6 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
       vbottom = height / 2.0;
       vtop = -height / 2.0;
       
-      canvas.setSize(width, height);    
       super.setSize(width, height);
       
       if(ADJUST){
@@ -714,6 +670,32 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
   }
 
 	/**
+	 * Convert an array of floats to a FloatBuffer.
+	 * @param array the array to convert
+	 * @return the resulting FloatBuffer
+	 */
+	public static FloatBuffer toFloatBuffer(float[] array)
+	{
+		FloatBuffer fb = ByteBuffer.allocateDirect(array.length*4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+	 	fb.put(array).flip();
+	 	
+	 	return fb;
+	}
+
+	/**
+	 * Convert an array of doubles to a DoubleBuffer.
+	 * @param array the array to convert
+	 * @return the resulting DoubleBuffer
+	 */
+	public static DoubleBuffer toDoubleBuffer(double[] array)
+	{
+		DoubleBuffer db = ByteBuffer.allocateDirect(array.length*8).order(ByteOrder.nativeOrder()).asDoubleBuffer();
+	 	db.put(array).flip();
+	 	
+	 	return db;
+	}
+
+	/**
    * Load model into our mesh structure.
    * @param filename the absolute name of the file
    * @param progressCallBack the callback handling progress updates
@@ -847,13 +829,12 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
 
 	/**
    * Save a screen shot to an image.
-   * @param gl the OpenGL context
    * @param filename the name of the file to save to
    */
-  private void saveImage(GL gl, String filename)
+  private void saveImage(String filename)
   {
     BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-    int[] rgb = grabImage(gl, GL.GL_BACK); 
+    int[] rgb = grabImage(GL11.GL_BACK); 
     
     try{
     	if(filename.endsWith(".jpg")){
@@ -866,11 +847,10 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
   }
 
 	/**
-   * Save a view (image + camera paramters).
-   * @param gl the OpenGL context
+   * Save a view (image + camera parameters).
    * @param path the folder to save to
    */
-  private void saveVisualHullView(GL gl, String path)
+  private void saveVisualHullView(String path)
   {
     BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
     int[] pixels_rgb = null;
@@ -895,7 +875,7 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
       }
     }
     
-    pixels_rgb = grabImage(gl, GL.GL_BACK);    
+    pixels_rgb = grabImage(GL11.GL_BACK);    
     
     //Create mask
     pixels_mask = new double[height][width];
@@ -907,26 +887,26 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
     }
     
     if(SAVE_AXIS){   //Draw reference axis and capture image
-    	//gl.glDrawBuffer(GL.GL_AUX0);
-      gl.glClearColor(0, 0, 0, 0);
-      gl.glClear(GL.GL_COLOR_BUFFER_BIT);
-      gl.glClear(GL.GL_DEPTH_BUFFER_BIT);
-      gl.glClearColor(1, 1, 1, 0);  //Set back to default color!
+    	//GL11.glDrawBuffer(GL11.GL_AUX0);
+    	GL11.glClearColor(0, 0, 0, 0);
+    	GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+    	GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
+    	GL11.glClearColor(1, 1, 1, 0);  //Set back to default color!
       
-      gl.glPushMatrix();
-      if(!ORTHO) gl.glTranslated(0, 0, -cz);
-      gl.glTranslated(transformation.tx, transformation.ty, transformation.tz);
-      gl.glRotated(transformation.rx, 1, 0, 0);   
-      gl.glRotated(transformation.ry, 0, 1, 0);
-      gl.glRotated(transformation.rz, 0, 0, 1);
-      gl.glMultMatrixd(MatrixUtility.to1D(MatrixUtility.transpose(rotation_last)), 0); 	//Must transpose since OpenGL uses column major order!
-      gl.glScaled(transformation.scl, transformation.scl, transformation.scl);
-      drawCalibrationAxis(gl, 150, 5);
-      gl.glPopMatrix();
-      gl.glFlush();
+    	GL11.glPushMatrix();
+      if(!ORTHO) GL11.glTranslated(0, 0, -cz);
+      GL11.glTranslated(transformation.tx, transformation.ty, transformation.tz);
+      GL11.glRotatef((float)transformation.rx, 1, 0, 0);   
+      GL11.glRotatef((float)transformation.ry, 0, 1, 0);
+      GL11.glRotatef((float)transformation.rz, 0, 0, 1);
+      GL11.glMultMatrix(toDoubleBuffer(MatrixUtility.to1D(MatrixUtility.transpose(rotation_last)))); 	//Must transpose since OpenGL uses column major order!
+      GL11.glScaled(transformation.scl, transformation.scl, transformation.scl);
+      drawCalibrationAxis(150, 5);
+      GL11.glPopMatrix();
+      GL11.glFlush();
       
-      pixels_axis = grabImage(gl, GL.GL_BACK);
-      //gl.glDrawBuffer(GL.GL_BACK);
+      pixels_axis = grabImage(GL11.GL_BACK);
+      //GL11.glDrawBuffer(GL11.GL_BACK);
     }
   
     //View the captured images
@@ -1102,19 +1082,18 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
 
 	/**
 	 * Grab the currently rendered image from the OpenGL context.
-	 * @param gl the OpenGL context
 	 * @param gl_color_buffer the OpenGL color buffer to read from
 	 * @return the image data in ARGB row major order
 	 */
-	private int[] grabImage(GL gl, int gl_color_buffer)
+	private int[] grabImage(int gl_color_buffer)
 	{
 	  int[] pixels = new int[width*height];
 	  ByteBuffer buffer = ByteBuffer.allocateDirect(width*height*3);
 	  int r, g, b, at;
 	  
-	  gl.glReadBuffer(gl_color_buffer);
-	  gl.glPixelStorei(GL.GL_PACK_ALIGNMENT, 1);
-	  gl.glReadPixels(0, 0, width, height, GL.GL_RGB, GL.GL_UNSIGNED_BYTE, buffer);
+	  GL11.glReadBuffer(gl_color_buffer);
+	  GL11.glPixelStorei(GL11.GL_PACK_ALIGNMENT, 1);
+	  GL11.glReadPixels(0, 0, width, height, GL11.GL_RGB, GL11.GL_UNSIGNED_BYTE, buffer);
 	  
 	  pixels = new int[width * height];
 	  at = 0;
@@ -1148,133 +1127,88 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
 	}
 	
   /**
-	 * Overridden update to avoid clearing.
-	 * @param g the graphics context
-	 */
-	public void update(Graphics g)
-	{
-		paint(g);
-	}
-
-	/**
-	 * Start rendering.
-	 */
-	public void start()
-	{
-		timer.start();
-	}
-
-	/**
-	 * Stop rendering.
-	 */
-	public void stop()
-	{
-		timer.stop();
-	}
-
-	/**
-	 * Create a FloatBuffer from an array of floats.
-	 * @param array the array to convert
-	 * @return the resulting float buffer
-	 */
-	public static FloatBuffer createFloatBuffer(float[] array)
-	{
-  	FloatBuffer fb = ByteBuffer.allocateDirect(array.length*4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-   	fb.put(array).flip();
-   	
-   	return fb;
-  }
-	
-	/**
    * Initialize the OpenGL canvas.
-   * @param drawable the OpenGL context to render to
    */
-  public void init(GLAutoDrawable drawable)
+  public void init()
   {
-    GL gl = drawable.getGL();
-    gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+  	GL11.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
     
-    gl.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, light0_position, 0);
-    gl.glLightfv(GL.GL_LIGHT0, GL.GL_DIFFUSE, light_diff, 0);
-    gl.glEnable(GL.GL_LIGHT0);
+  	GL11.glLight(GL11.GL_LIGHT0, GL11.GL_POSITION, light0_position);
+  	GL11.glLight(GL11.GL_LIGHT0, GL11.GL_DIFFUSE, light_diffuse);
+  	GL11.glEnable(GL11.GL_LIGHT0);
     
-    gl.glLightfv(GL.GL_LIGHT1, GL.GL_POSITION, light1_position, 0);
-    gl.glLightfv(GL.GL_LIGHT1, GL.GL_DIFFUSE, light_diff, 0);
-    gl.glEnable(GL.GL_LIGHT1);
+  	GL11.glLight(GL11.GL_LIGHT1, GL11.GL_POSITION, light1_position);
+  	GL11.glLight(GL11.GL_LIGHT1, GL11.GL_DIFFUSE, light_diffuse);
+  	GL11.glEnable(GL11.GL_LIGHT1);
     
-    gl.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT, model_ambient, 0);
-    gl.glLightModeli(GL.GL_LIGHT_MODEL_TWO_SIDE, GL.GL_TRUE);
+  	GL11.glLightModel(GL11.GL_LIGHT_MODEL_AMBIENT, light_ambient);
+  	GL11.glLightModeli(GL11.GL_LIGHT_MODEL_TWO_SIDE, GL11.GL_TRUE);
     
-    gl.glEnable(GL.GL_NORMALIZE);    
-    gl.glEnable(GL.GL_DEPTH_TEST);
+  	GL11.glEnable(GL11.GL_NORMALIZE);    
+  	GL11.glEnable(GL11.GL_DEPTH_TEST);
         	
     if(ANTI_ALIASING){
-      gl.glHint(GL.GL_POINT_SMOOTH, GL.GL_NICEST);
-      gl.glHint(GL.GL_LINE_SMOOTH, GL.GL_NICEST);
-      gl.glHint(GL.GL_POLYGON_SMOOTH_HINT, GL.GL_NICEST);
-      gl.glEnable(GL.GL_POINT_SMOOTH);
-      gl.glEnable(GL.GL_LINE_SMOOTH);
-      gl.glEnable(GL.GL_POLYGON_SMOOTH);
+    	GL11.glHint(GL11.GL_POINT_SMOOTH, GL11.GL_NICEST);
+    	GL11.glHint(GL11.GL_LINE_SMOOTH, GL11.GL_NICEST);
+    	GL11.glHint(GL11.GL_POLYGON_SMOOTH_HINT, GL11.GL_NICEST);
+    	GL11.glEnable(GL11.GL_POINT_SMOOTH);
+    	GL11.glEnable(GL11.GL_LINE_SMOOTH);
+    	GL11.glEnable(GL11.GL_POLYGON_SMOOTH);
     }
     
-    drawable.addKeyListener(this);
-    drawable.addMouseListener(this);
-    drawable.addMouseMotionListener(this);
-    drawable.addMouseWheelListener(this);
-    
-    gl.glMatrixMode(GL.GL_PROJECTION);
-    gl.glLoadIdentity();
-    gl.glOrtho(vleft, vright, vbottom, vtop, vnear, vfar);
-    gl.glScalef(1, -1, 1);
-    gl.glMatrixMode(GL.GL_MODELVIEW);
-    gl.glLoadIdentity();
+    GL11.glMatrixMode(GL11.GL_PROJECTION);
+    GL11.glLoadIdentity();
+    GL11.glOrtho(vleft, vright, vbottom, vtop, vnear, vfar);
+    GL11.glScalef(1, -1, 1);
+    GL11.glMatrixMode(GL11.GL_MODELVIEW);
+    GL11.glLoadIdentity();
   }
 
 	/**
    * Render the scene.
-   * @param drawable the OpenGL context to render to
    */
-  public synchronized void display(GLAutoDrawable drawable)
+  public synchronized void display()
   {
-    GL gl = drawable.getGL();
-    gl.glClear(GL.GL_COLOR_BUFFER_BIT);
-    gl.glClear(GL.GL_DEPTH_BUFFER_BIT);
+  	GL11.glClear(GL11.GL_COLOR_BUFFER_BIT);
+  	GL11.glClear(GL11.GL_DEPTH_BUFFER_BIT);
     
     if(UPDATE_CAMERA){
-      gl.glMatrixMode(GL.GL_PROJECTION);
-      gl.glLoadIdentity();
+    	GL11.glMatrixMode(GL11.GL_PROJECTION);
+    	GL11.glLoadIdentity();
       
       if(ORTHO){
-        gl.glOrtho(vleft, vright, vbottom, vtop, vnear, vfar);
-        gl.glScalef(1, -1, 1);
+      	GL11.glOrtho(vleft, vright, vbottom, vtop, vnear, vfar);
+      	GL11.glScalef(1, -1, 1);
       }else{
         GLU glu = new GLU();
-        glu.gluPerspective(20.0, (float)width/(float)height, 1.0, 100000.0);  
+        glu.gluPerspective(20.0f, (float)width/(float)height, 1.0f, 100000.0f);  
       }
       
-      gl.glMatrixMode(GL.GL_MODELVIEW);
+      GL11.glMatrixMode(GL11.GL_MODELVIEW);
       UPDATE_CAMERA = false;
     }
     
-    gl.glPushMatrix();
+    GL11.glPushMatrix();
     
     if(!ORTHO){ //Must place this in Modelview matrix so that Projection matrix is equivelent to K!
-      gl.glTranslated(0, 0, -cz);
+    	GL11.glTranslated(0, 0, -cz);
     }
     
-    gl.glTranslatef(adj_tx, adj_ty, 0);
-    gl.glTranslated(transformation.tx, transformation.ty, transformation.tz);
-    gl.glRotated(transformation.rx, 1, 0, 0);   
-    gl.glRotated(transformation.ry, 0, 1, 0);
-    gl.glRotated(transformation.rz, 0, 0, 1);
-    gl.glMultMatrixd(MatrixUtility.to1D(MatrixUtility.transpose(rotation_last)), 0); 	//Must transpose since OpenGL uses column major order!
-    gl.glScaled(adj_scl, adj_scl, adj_scl);
-    gl.glScaled(transformation.scl, transformation.scl, transformation.scl);
+    GL11.glTranslatef(adj_tx, adj_ty, 0);
+    GL11.glTranslated(transformation.tx, transformation.ty, transformation.tz);
+    GL11.glRotatef((float)transformation.rx, 1, 0, 0);   
+    GL11.glRotatef((float)transformation.ry, 0, 1, 0);
+    GL11.glRotatef((float)transformation.rz, 0, 0, 1);
+    GL11.glMultMatrix(toDoubleBuffer(MatrixUtility.to1D(MatrixUtility.transpose(rotation_last)))); 	//Must transpose since OpenGL uses column major order!
+    GL11.glScaled(adj_scl, adj_scl, adj_scl);
+    GL11.glScaled(transformation.scl, transformation.scl, transformation.scl);
     
     //Extract camera and transformation if needed
     if(OUTLINE || HIGHLIGHTS || ILLUSTRATION || METAL || RAYTRACE || SELECTING || BENDING_JOINT || SAVE_VISUAL_HULL_VIEW || SAVE_DEPTH || SAVE_POINTS_CAMERA){
-      gl.glGetDoublev(GL.GL_TRANSPOSE_PROJECTION_MATRIX, projection_tmp, 0);
-      gl.glGetDoublev(GL.GL_TRANSPOSE_MODELVIEW_MATRIX, modelview_tmp, 0);
+    	GL11.glGetDouble(GL13.GL_TRANSPOSE_PROJECTION_MATRIX, projection_buffer);
+    	GL11.glGetDouble(GL13.GL_TRANSPOSE_MODELVIEW_MATRIX, modelview_buffer);
+    	projection_buffer.get(projection_tmp); projection_buffer.rewind();
+    	modelview_buffer.get(modelview_tmp); modelview_buffer.rewind();
       MatrixUtility.to2D(projection, projection_tmp);
       MatrixUtility.to2D(modelview, modelview_tmp);
               
@@ -1284,30 +1218,30 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
       modelview_zeroT[2][3] = 0;
     }
     
-    if(PC_AXIS) drawPCs(gl, mesh, 0.1f*halfwidth);
+    if(PC_AXIS) drawPCs(mesh, 0.1f*halfwidth);
     
-    if(POINTS) drawPoints(gl, mesh);
-    if(WIRE) drawEdges(gl, mesh);
-    if(OUTLINE) drawOutline(gl, mesh, modelview);
+    if(POINTS) drawPoints(mesh);
+    if(WIRE) drawEdges(mesh);
+    if(OUTLINE) drawOutline(mesh, modelview);
     
     if(SOLID){
-      drawSolid(gl, mesh);
+      drawSolid(mesh);
     }else if(SHADED){
       if(list_id == 0){   //Rebuild the list
-        list_id = gl.glGenLists(1);
+        list_id = GL11.glGenLists(1);
         
-        gl.glNewList(list_id, GL.GL_COMPILE);
-        drawShaded(gl, mesh, SHADED_SMOOTH);
-        gl.glEndList();
+        GL11.glNewList(list_id, GL11.GL_COMPILE);
+        drawShaded(mesh, SHADED_SMOOTH);
+        GL11.glEndList();
       }
       
-      gl.glCallList(list_id);           
+      GL11.glCallList(list_id);           
     }else if(HIGHLIGHTS){
-      drawHighlights(gl, mesh, modelview_zeroT);
+      drawHighlights(mesh, modelview_zeroT);
     }else if(ILLUSTRATION){
-      drawIllustration(gl, mesh, modelview_zeroT);
+      drawIllustration(mesh, modelview_zeroT);
     }else if(METAL){
-      drawMetal(gl, mesh, modelview_zeroT);
+      drawMetal(mesh, modelview_zeroT);
     }
     
     if(RAYTRACE){
@@ -1318,25 +1252,25 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
     
     //Draw added meshes
     for(int i=0; i<added_meshes.size(); i++){
-    	gl.glPushMatrix();
+    	GL11.glPushMatrix();
     	
-      gl.glTranslated(added_transformations.get(i).tx, added_transformations.get(i).ty, added_transformations.get(i).tz);
-      gl.glRotated(added_transformations.get(i).rx, rotation_last_inv[0][0], rotation_last_inv[1][0], rotation_last_inv[2][0]);   
-      gl.glRotated(added_transformations.get(i).ry, rotation_last_inv[0][1], rotation_last_inv[1][1], rotation_last_inv[2][1]);
-      gl.glRotated(added_transformations.get(i).rz, rotation_last_inv[0][2], rotation_last_inv[1][2], rotation_last_inv[2][2]);
-      gl.glMultMatrixd(MatrixUtility.to1D(MatrixUtility.transpose(added_rotation_last.get(i))), 0); 	//Must transpose since OpenGL uses column major order!
-      gl.glScaled(added_transformations.get(i).scl, added_transformations.get(i).scl, added_transformations.get(i).scl);
+    	GL11.glTranslated(added_transformations.get(i).tx, added_transformations.get(i).ty, added_transformations.get(i).tz);
+    	GL11.glRotatef((float)added_transformations.get(i).rx, (float)rotation_last_inv[0][0], (float)rotation_last_inv[1][0], (float)rotation_last_inv[2][0]);   
+    	GL11.glRotatef((float)added_transformations.get(i).ry, (float)rotation_last_inv[0][1], (float)rotation_last_inv[1][1], (float)rotation_last_inv[2][1]);
+    	GL11.glRotatef((float)added_transformations.get(i).rz, (float)rotation_last_inv[0][2], (float)rotation_last_inv[1][2], (float)rotation_last_inv[2][2]);
+    	GL11.glMultMatrix(toDoubleBuffer(MatrixUtility.to1D(MatrixUtility.transpose(added_rotation_last.get(i))))); 	//Must transpose since OpenGL uses column major order!
+    	GL11.glScaled(added_transformations.get(i).scl, added_transformations.get(i).scl, added_transformations.get(i).scl);
 
-      drawShaded(gl, added_meshes.get(i), SHADED_SMOOTH);
+      drawShaded(added_meshes.get(i), SHADED_SMOOTH);
 
-    	gl.glPopMatrix();
+      GL11.glPopMatrix();
     }
     
     //Draw selection
     if(selected_vertices != null){
     	if(selected_vertex_faces != null){
-      	gl.glColor3f(0, 0, 1);
-      	drawShadedFlat(gl, mesh, selected_vertex_faces);
+      	GL11.glColor3f(0, 0, 1);
+      	drawShadedFlat(mesh, selected_vertex_faces);
     	}
     	      	
     	if(selected_component_faces!=null){
@@ -1348,13 +1282,13 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
     			g = 0.5 + (random.nextFloat()-0.5)/4;
     			b = 0.5 + (random.nextFloat()-0.5)/4;
 
-	      	gl.glColor3d(r, g, b);
-	      	drawShadedFlat(gl, mesh, selected_component_faces.get(i));
+    			GL11.glColor3d(r, g, b);
+	      	drawShadedFlat(mesh, selected_component_faces.get(i));
     		}
     	}
     }
     
-    gl.glPopMatrix();
+    GL11.glPopMatrix();
     
     if(SELECTING){
     	if(SELECT_BOUNDING_BOX && selection_p0 != null && selection_p1 != null){
@@ -1373,41 +1307,41 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
     		selection_maxy = halfheight - selection_maxy;
     		
     		//Draw selection area
-    		gl.glColor3f(0, 0, 1);
-    		gl.glBegin(GL.GL_LINES);
+    		GL11.glColor3f(0, 0, 1);
+    		GL11.glBegin(GL11.GL_LINES);
     		
     		//Top line
-    		gl.glVertex3d(selection_minx, selection_miny, z);
-    		gl.glVertex3d(selection_maxx, selection_miny, z);
+    		GL11.glVertex3d(selection_minx, selection_miny, z);
+    		GL11.glVertex3d(selection_maxx, selection_miny, z);
     		
     		//Bottom line
-    		gl.glVertex3d(selection_minx, selection_maxy, z);
-    		gl.glVertex3d(selection_maxx, selection_maxy, z);
+    		GL11.glVertex3d(selection_minx, selection_maxy, z);
+    		GL11.glVertex3d(selection_maxx, selection_maxy, z);
     		
     		//Left line
-    		gl.glVertex3d(selection_minx, selection_miny, z);
-    		gl.glVertex3d(selection_minx, selection_maxy, z);
+    		GL11.glVertex3d(selection_minx, selection_miny, z);
+    		GL11.glVertex3d(selection_minx, selection_maxy, z);
     		
     		//Top line
-    		gl.glVertex3d(selection_maxx, selection_miny, z);
-    		gl.glVertex3d(selection_maxx, selection_maxy, z);
+    		GL11.glVertex3d(selection_maxx, selection_miny, z);
+    		GL11.glVertex3d(selection_maxx, selection_maxy, z);
 
-    		gl.glEnd();
+    		GL11.glEnd();
       }
     }
     
     if(AXIS){		//Only visible under orthographic projection!
-      gl.glPushMatrix();
-      gl.glTranslatef(0.8f*halfwidth, -0.8f*halfheight, 0.8f*(float)vfar);
-      gl.glRotated(transformation.rx, 1, 0, 0);   
-      gl.glRotated(transformation.ry, 0, 1, 0);
-      gl.glRotated(transformation.rz, 0, 0, 1);
-      gl.glMultMatrixd(MatrixUtility.to1D(MatrixUtility.transpose(rotation_last)), 0); 	//Must transpose since OpenGL uses column major order!
-      drawAxis(gl, 0.1f, 3);
-      gl.glPopMatrix();
+    	GL11.glPushMatrix();
+    	GL11.glTranslatef(0.8f*halfwidth, -0.8f*halfheight, 0.8f*(float)vfar);
+    	GL11.glRotatef((float)transformation.rx, 1, 0, 0);   
+      GL11.glRotatef((float)transformation.ry, 0, 1, 0);
+      GL11.glRotatef((float)transformation.rz, 0, 0, 1);
+      GL11.glMultMatrix(toDoubleBuffer(MatrixUtility.to1D(MatrixUtility.transpose(rotation_last)))); 	//Must transpose since OpenGL uses column major order!
+      drawAxis(0.1f, 3);
+      GL11.glPopMatrix();
     }
     
-    gl.glFlush();
+    GL11.glFlush();
     
   	if(AUTO_REFRESH || (mesh instanceof AnimatedMesh && ((AnimatedMesh)mesh).getAnimationLoader()!=null)){
   		REFRESH = true;
@@ -1416,17 +1350,17 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
   	}
     
     if(GRAB_IMAGE){
-    	grabbed_image = grabImage(gl, GL.GL_BACK);
+    	grabbed_image = grabImage(GL11.GL_BACK);
       GRAB_IMAGE = false;	
     }
     
     if(SAVE_IMAGE){
-    	saveImage(gl, output_name);
+    	saveImage(output_name);
     	SAVE_IMAGE = false;
     }
     
     if(SAVE_VISUAL_HULL_VIEW){
-      saveVisualHullView(gl, output_name);
+      saveVisualHullView(output_name);
       SAVE_VISUAL_HULL_VIEW = false;
       REFRESH = true;
     }
@@ -1466,7 +1400,6 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
 
 	/**
 	 * Draw a sphere to the given OpenGL context.
-	 * @param gl the OpenGL context
 	 * @param x the x-coordinate of the sphere's center
 	 * @param y the y-coordinate of the sphere's center
 	 * @param z the z-coordinate of the sphere's center
@@ -1474,129 +1407,124 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
 	 * @param sy the scale in the y-direction
 	 * @param sz the scale in the z-direction
 	 */
-	private void drawSphere(GL gl, float x, float y, float z, float sx, float sy, float sz)
+	private void drawSphere(float x, float y, float z, float sx, float sy, float sz)
 	{
-	  GLU glu = new GLU();
-		GLUquadric quadric = glu.gluNewQuadric();
+		Sphere sphere = new Sphere();
 		
-		gl.glPushMatrix();
-		gl.glTranslatef(x, y, z);
-	  gl.glScalef(sx, sy, sz);
-		glu.gluSphere(quadric, 1, 10, 10);
-		gl.glPopMatrix();
+		GL11.glPushMatrix();
+		GL11.glTranslatef(x, y, z);
+		GL11.glScalef(sx, sy, sz);
+		sphere.draw(1, 10, 10);
+		GL11.glPopMatrix();
 	}
 
 	/**
 	 * Draw a sphere to the given OpenGL context.
-	 * @param gl the OpenGL context
 	 * @param x the x-coordinate of the sphere's center
 	 * @param y the y-coordinate of the sphere's center
 	 * @param z the z-coordinate of the sphere's center
 	 * @param radius the radius of the sphere
 	 */
-	private void drawSphere(GL gl, float x, float y, float z, float radius)
+	private void drawSphere(float x, float y, float z, float radius)
 	{
-	  drawSphere(gl, x, y, z, radius, radius, radius);
+	  drawSphere(x, y, z, radius, radius, radius);
 	}
 
 	/**
 	 * Draw the reference axis to the given OpenGL context.
-	 * @param gl the OpenGL context
 	 * @param scale the scale of the axis (relative to the window width/height)
 	 * @param line_width the width of the lines when rendering the axis
 	 */
-	private void drawAxis(GL gl, float scale, int line_width)
+	private void drawAxis(float scale, int line_width)
 	{
 		float length = scale * 0.8f * ((width<height)?width:height)/2.0f;
 		
-	  gl.glPushMatrix();
-	  gl.glScalef(length, length, length);
-	  gl.glDisable(GL.GL_LIGHTING);
-	  gl.glLineWidth(line_width);
-	  gl.glBegin(GL.GL_LINES);
+		GL11.glPushMatrix();
+		GL11.glScalef(length, length, length);
+		GL11.glDisable(GL11.GL_LIGHTING);
+		GL11.glLineWidth(line_width);
+		GL11.glBegin(GL11.GL_LINES);
 	  
-	  gl.glColor3f(1, 0, 0);
-	  gl.glVertex3f(0, 0, 0);
-	  gl.glVertex3f(1, 0, 0);
+		GL11.glColor3f(1, 0, 0);
+		GL11.glVertex3f(0, 0, 0);
+		GL11.glVertex3f(1, 0, 0);
 	  
-	  gl.glColor3f(0, 1, 0);
-	  gl.glVertex3f(0, 0, 0);
-	  gl.glVertex3f(0, 1, 0);
+		GL11.glColor3f(0, 1, 0);
+		GL11.glVertex3f(0, 0, 0);
+		GL11.glVertex3f(0, 1, 0);
 	  
-	  gl.glColor3f(0, 0, 1);
-	  gl.glVertex3f(0, 0, 0);
-	  gl.glVertex3f(0, 0, 1);
+		GL11.glColor3f(0, 0, 1);
+		GL11.glVertex3f(0, 0, 0);
+		GL11.glVertex3f(0, 0, 1);
 	  
-	  gl.glEnd();
-	  gl.glPopMatrix();
+		GL11.glEnd();
+		GL11.glPopMatrix();
 	}
 
 	/**
 	 * Draw the reference axis to the given OpenGL context.
-	 * @param gl the OpenGL context
 	 * @param scale the scale of the axis
 	 * @param line_width the width of the lines when rendering the axis
 	 */
-	private void drawCalibrationAxis(GL gl, float scale, int line_width)
+	private void drawCalibrationAxis(float scale, int line_width)
 	{
-	  gl.glDisable(GL.GL_LIGHTING);
-	  gl.glPushMatrix();
-	  gl.glScalef(scale, scale, scale);
+		GL11.glDisable(GL11.GL_LIGHTING);
+		GL11.glPushMatrix();
+		GL11.glScalef(scale, scale, scale);
 	  
 	  //Axis    
-	  gl.glLineWidth(line_width);
-	  gl.glBegin(GL.GL_LINES);
+		GL11.glLineWidth(line_width);
+		GL11.glBegin(GL11.GL_LINES);
 	  
-	  gl.glColor3f(1, 0, 0);
-	  gl.glVertex3f(0.05f, 0, 0);
-	  gl.glVertex3f(1, 0, 0);
+		GL11.glColor3f(1, 0, 0);
+		GL11.glVertex3f(0.05f, 0, 0);
+		GL11.glVertex3f(1, 0, 0);
 	  
-	  gl.glColor3f(0, 1, 0);
-	  gl.glVertex3f(0, 0.05f, 0);
-	  gl.glVertex3f(0, 1, 0);
+		GL11.glColor3f(0, 1, 0);
+		GL11.glVertex3f(0, 0.05f, 0);
+		GL11.glVertex3f(0, 1, 0);
 	  
-	  gl.glColor3f(0, 0, 1);
-	  gl.glVertex3f(0, 0, 0.05f);
-	  gl.glVertex3f(0, 0, 1);
+		GL11.glColor3f(0, 0, 1);
+		GL11.glVertex3f(0, 0, 0.05f);
+		GL11.glVertex3f(0, 0, 1);
 	  
-	  gl.glEnd();
+		GL11.glEnd();
 	  
 	   //LED's
-	  gl.glColor3f(1, 1, 0);
-	  drawSphere(gl, 0, 0, 0, 0.025f);
-	  drawSphere(gl, 1, 0, 0, 0.025f);
-	  drawSphere(gl, 0, 1, 0, 0.025f);
-	  drawSphere(gl, 0, 0, 1, 0.025f);
+		GL11.glColor3f(1, 1, 0);
+	  drawSphere(0, 0, 0, 0.025f);
+	  drawSphere(1, 0, 0, 0.025f);
+	  drawSphere(0, 1, 0, 0.025f);
+	  drawSphere(0, 0, 1, 0.025f);
 	  
 	  //Mid-markers
 	  if(false){
-	    gl.glColor3f(0, 0, 0);
-	    drawSphere(gl, 0.5f, 0, 0, 2*0.025f, 0.025f, 0.025f);
-	    drawSphere(gl, 0, 0.5f, 0, 0.025f, 2*0.025f, 0.025f);
-	    drawSphere(gl, 0, 0, 0.5f, 0.025f, 0.025f, 2*0.025f);
+	  	GL11.glColor3f(0, 0, 0);
+	    drawSphere(0.5f, 0, 0, 2*0.025f, 0.025f, 0.025f);
+	    drawSphere(0, 0.5f, 0, 0.025f, 2*0.025f, 0.025f);
+	    drawSphere(0, 0, 0.5f, 0.025f, 0.025f, 2*0.025f);
 	  }
 	  
 	  //Third-markers
 	  if(true){
-	    gl.glColor3f(0, 0, 0);
-	    drawSphere(gl, 0.33f, 0, 0, 2*0.025f, 0.025f, 0.025f);
-	    drawSphere(gl, 0.67f, 0, 0, 2*0.025f, 0.025f, 0.025f);
-	    drawSphere(gl, 0, 0.33f, 0, 0.025f, 2*0.025f, 0.025f);
-	    drawSphere(gl, 0, 0.67f, 0, 0.025f, 2*0.025f, 0.025f);
-	    drawSphere(gl, 0, 0, 0.33f, 0.025f, 0.025f, 2*0.025f);
-	    drawSphere(gl, 0, 0, 0.67f, 0.025f, 0.025f, 2*0.025f);
+	  	GL11.glColor3f(0, 0, 0);
+	    drawSphere(0.33f, 0, 0, 2*0.025f, 0.025f, 0.025f);
+	    drawSphere(0.67f, 0, 0, 2*0.025f, 0.025f, 0.025f);
+	    drawSphere(0, 0.33f, 0, 0.025f, 2*0.025f, 0.025f);
+	    drawSphere(0, 0.67f, 0, 0.025f, 2*0.025f, 0.025f);
+	    drawSphere(0, 0, 0.33f, 0.025f, 0.025f, 2*0.025f);
+	    drawSphere(0, 0, 0.67f, 0.025f, 0.025f, 2*0.025f);
 	  }
 	  
-	  gl.glPopMatrix();
+	  GL11.glPopMatrix();
 	}
 
 	/**
    * Bind any newly added textures.
-   * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
    * @param FORCE set to true to force rebinding of textures
    */
-  private void bindTextures(GL gl, Mesh mesh, boolean FORCE)
+  private void bindTextures(Mesh mesh, boolean FORCE)
   {
   	Vector<Texture> textures;
   	
@@ -1606,20 +1534,20 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
   		for(int i=0; i<textures.size(); i++){
   			if(textures.get(i).tid == -1 || FORCE){
   				textures.get(i).tid = i;
-		  	  gl.glBindTexture(gl.GL_TEXTURE_2D, textures.get(i).tid);
-		  	  gl.glPixelStorei(gl.GL_UNPACK_ALIGNMENT, 1);
-		  	  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT);
-		  	  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_T, gl.GL_REPEAT);
-		  	  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER, gl.GL_LINEAR);
-		  	  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER, gl.GL_LINEAR);
+  				GL11.glBindTexture(GL11.GL_TEXTURE_2D, textures.get(i).tid);
+  				GL11.glPixelStorei(GL11.GL_UNPACK_ALIGNMENT, 1);
+  				GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_S, GL11.GL_REPEAT);
+  				GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_WRAP_T, GL11.GL_REPEAT);
+  				GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MIN_FILTER, GL11.GL_LINEAR);
+  				GL11.glTexParameteri(GL11.GL_TEXTURE_2D, GL11.GL_TEXTURE_MAG_FILTER, GL11.GL_LINEAR);
 		  	  
 		  	  if(texture == DrawOption.DECAL){
-		  	  	gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_DECAL);
+		  	  	GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL11.GL_DECAL);
 		  	  }else if(texture == DrawOption.MODULATE){
-		  	  	gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE);
+		  	  	GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL11.GL_MODULATE);
 		  	  }
 		  	  
-		  	  gl.glTexImage2D(gl.GL_TEXTURE_2D, 0, gl.GL_RGB, textures.get(i).w, textures.get(i).h, 0, gl.GL_RGB, gl.GL_UNSIGNED_BYTE, textures.get(i).buffer);
+		  	  GL11.glTexImage2D(GL11.GL_TEXTURE_2D, 0, GL11.GL_RGB, textures.get(i).w, textures.get(i).h, 0, GL11.GL_RGB, GL11.GL_UNSIGNED_BYTE, textures.get(i).buffer);
   			}
   		}
   		
@@ -1629,96 +1557,92 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
   
   /**
    * Draw the principal components of the currently loaded model.
-   * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
    * @param scl the scale of the axis representing the principle components
    */
-  private void drawPCs(GL gl, Mesh mesh, float scl)
+  private void drawPCs(Mesh mesh, float scl)
   {
   	Vector<Point> PC = mesh.getPC();
   	Point center = mesh.getCenter();
   	
   	if(PC != null){
-	    gl.glDisable(GL.GL_LIGHTING);
-	    gl.glLineWidth(3);
-	    gl.glBegin(GL.GL_LINES);
+  		GL11.glDisable(GL11.GL_LIGHTING);
+  		GL11.glLineWidth(3);
+  		GL11.glBegin(GL11.GL_LINES);
 	    
-	    gl.glColor3f(1.0f, 0.0f, 0.0f);     
-	    gl.glVertex3f((float)center.x, (float)center.y, (float)center.z);
-	    gl.glVertex3f(scl*(float)PC.get(0).x, scl*(float)PC.get(0).y, scl*(float)PC.get(0).z);
+  		GL11.glColor3f(1.0f, 0.0f, 0.0f);     
+  		GL11.glVertex3f((float)center.x, (float)center.y, (float)center.z);
+  		GL11.glVertex3f(scl*(float)PC.get(0).x, scl*(float)PC.get(0).y, scl*(float)PC.get(0).z);
 	    
-	    gl.glColor3f(0.0f, 1.0f, 0.0f);     
-	    gl.glVertex3f((float)center.x, (float)center.y, (float)center.z);
-	    gl.glVertex3f(scl*(float)PC.get(1).x, scl*(float)PC.get(1).y, scl*(float)PC.get(1).z);
+  		GL11.glColor3f(0.0f, 1.0f, 0.0f);     
+  		GL11.glVertex3f((float)center.x, (float)center.y, (float)center.z);
+  		GL11.glVertex3f(scl*(float)PC.get(1).x, scl*(float)PC.get(1).y, scl*(float)PC.get(1).z);
 	    
-	    gl.glColor3f(0.0f, 0.0f, 1.0f);     
-	    gl.glVertex3f((float)center.x, (float)center.y, (float)center.z);
-	    gl.glVertex3f(scl*(float)PC.get(2).x, scl*(float)PC.get(2).y, scl*(float)PC.get(2).z);
+  		GL11.glColor3f(0.0f, 0.0f, 1.0f);     
+  		GL11.glVertex3f((float)center.x, (float)center.y, (float)center.z);
+  		GL11.glVertex3f(scl*(float)PC.get(2).x, scl*(float)PC.get(2).y, scl*(float)PC.get(2).z);
 	    
-	    gl.glEnd();
+  		GL11.glEnd();
   	}
   }
   
   /**
    * Draw the models points.
-   * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
    */
-  private void drawPoints(GL gl, Mesh mesh)
+  private void drawPoints(Mesh mesh)
   {
   	Vector<Point> vertices = mesh.getVertices();
   	Vector<Color> vertex_colors = mesh.getVertexColors();
   	
-    gl.glDisable(GL.GL_LIGHTING);
-    gl.glPointSize(6);		//Default: 2
-    gl.glBegin(GL.GL_POINTS);
+  	GL11.glDisable(GL11.GL_LIGHTING);
+    GL11.glPointSize(6);		//Default: 2
+    GL11.glBegin(GL11.GL_POINTS);
     
     if(vertex_colors.size() != vertices.size()){
-      gl.glColor3f(0.0f, 0.0f, 0.0f);
+    	GL11.glColor3f(0.0f, 0.0f, 0.0f);
       
       for(int i=0; i<vertices.size(); i++){
-        gl.glVertex3f((float)vertices.get(i).x, (float)vertices.get(i).y, (float)vertices.get(i).z);
+      	GL11.glVertex3f((float)vertices.get(i).x, (float)vertices.get(i).y, (float)vertices.get(i).z);
       }
     }else{
       for(int i=0; i<vertices.size(); i++){
-        gl.glColor3f(vertex_colors.get(i).r, vertex_colors.get(i).g, vertex_colors.get(i).b);     
-        gl.glVertex3f((float)vertices.get(i).x, (float)vertices.get(i).y, (float)vertices.get(i).z);
+      	GL11.glColor3f(vertex_colors.get(i).r, vertex_colors.get(i).g, vertex_colors.get(i).b);     
+      	GL11.glVertex3f((float)vertices.get(i).x, (float)vertices.get(i).y, (float)vertices.get(i).z);
       }
     }
     
-    gl.glEnd();
+    GL11.glEnd();
   }
   
   /**
    * Draw the models edges.
-   * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
    */
-  private void drawEdges(GL gl, Mesh mesh)
+  private void drawEdges(Mesh mesh)
   {
   	Vector<Edge> edges = mesh.getEdges();
   	Vector<Point> vertices = mesh.getVertices();
   	
-    gl.glDisable(GL.GL_LIGHTING);
-    gl.glColor3f(0.0f, 0.0f, 0.0f); 
-    gl.glLineWidth(2);
-    gl.glBegin(GL.GL_LINES);
+  	GL11.glDisable(GL11.GL_LIGHTING);
+  	GL11.glColor3f(0.0f, 0.0f, 0.0f); 
+  	GL11.glLineWidth(2);
+  	GL11.glBegin(GL11.GL_LINES);
     
     for(int i=0; i<edges.size(); i++){
-      gl.glVertex3f((float)vertices.get(edges.get(i).v0).x, (float)vertices.get(edges.get(i).v0).y, (float)vertices.get(edges.get(i).v0).z);
-      gl.glVertex3f((float)vertices.get(edges.get(i).v1).x, (float)vertices.get(edges.get(i).v1).y, (float)vertices.get(edges.get(i).v1).z);
+    	GL11.glVertex3f((float)vertices.get(edges.get(i).v0).x, (float)vertices.get(edges.get(i).v0).y, (float)vertices.get(edges.get(i).v0).z);
+    	GL11.glVertex3f((float)vertices.get(edges.get(i).v1).x, (float)vertices.get(edges.get(i).v1).y, (float)vertices.get(edges.get(i).v1).z);
     }
     
-    gl.glEnd();
+    GL11.glEnd();
   }
   
   /**
    * Draw the occluding and critical edges of the model.
-   * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
    * @param M the current modelview matrix (stored elsewhere to prevent repeated extraction/conversion)
    */
-  private void drawOutline(GL gl, Mesh mesh, double[][] M)
+  private void drawOutline(Mesh mesh, double[][] M)
   {
   	Vector<Point> vertices = mesh.getVertices();
   	Vector<Face> faces = mesh.getFaces();
@@ -1777,77 +1701,74 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
     }
     
     //Draw edges
-    gl.glDisable(GL.GL_LIGHTING);
-    gl.glColor3f(0.0f, 0.0f, 0.0f);    
-    gl.glLineWidth(3);
-    gl.glBegin(GL.GL_LINES);
+    GL11.glDisable(GL11.GL_LIGHTING);
+    GL11.glColor3f(0.0f, 0.0f, 0.0f);    
+    GL11.glLineWidth(3);
+    GL11.glBegin(GL11.GL_LINES);
     
     for(int i=0; i<outline_edges.size(); i++){
-      gl.glVertex3f((float)vertices.get(edges.get(outline_edges.get(i)).v0).x, (float)vertices.get(edges.get(outline_edges.get(i)).v0).y, (float)vertices.get(edges.get(outline_edges.get(i)).v0).z);
-      gl.glVertex3f((float)vertices.get(edges.get(outline_edges.get(i)).v1).x, (float)vertices.get(edges.get(outline_edges.get(i)).v1).y, (float)vertices.get(edges.get(outline_edges.get(i)).v1).z); 
+    	GL11.glVertex3f((float)vertices.get(edges.get(outline_edges.get(i)).v0).x, (float)vertices.get(edges.get(outline_edges.get(i)).v0).y, (float)vertices.get(edges.get(outline_edges.get(i)).v0).z);
+    	GL11.glVertex3f((float)vertices.get(edges.get(outline_edges.get(i)).v1).x, (float)vertices.get(edges.get(outline_edges.get(i)).v1).y, (float)vertices.get(edges.get(outline_edges.get(i)).v1).z); 
     }
     
     for(int i=0; i<sharp_edges.size(); i++){
-      gl.glVertex3f((float)vertices.get(edges.get(sharp_edges.get(i)).v0).x, (float)vertices.get(edges.get(sharp_edges.get(i)).v0).y, (float)vertices.get(edges.get(sharp_edges.get(i)).v0).z);
-      gl.glVertex3f((float)vertices.get(edges.get(sharp_edges.get(i)).v1).x, (float)vertices.get(edges.get(sharp_edges.get(i)).v1).y, (float)vertices.get(edges.get(sharp_edges.get(i)).v1).z); 
+    	GL11.glVertex3f((float)vertices.get(edges.get(sharp_edges.get(i)).v0).x, (float)vertices.get(edges.get(sharp_edges.get(i)).v0).y, (float)vertices.get(edges.get(sharp_edges.get(i)).v0).z);
+    	GL11.glVertex3f((float)vertices.get(edges.get(sharp_edges.get(i)).v1).x, (float)vertices.get(edges.get(sharp_edges.get(i)).v1).y, (float)vertices.get(edges.get(sharp_edges.get(i)).v1).z); 
     }
     
-    gl.glEnd();  
+    GL11.glEnd();  
   }
   
   /**
    * Draw the unshaded faces is a solid color.
-   * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
    */
-  private void drawSolid(GL gl, Mesh mesh)
+  private void drawSolid(Mesh mesh)
   {
   	Vector<Face> faces = mesh.getFaces();
   	Vector<Point> vertices = mesh.getVertices();
   	
-    gl.glDisable(GL.GL_LIGHTING);
-    gl.glColor3f(1.0f, 1.0f, 1.0f);      
-    gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
-    gl.glPolygonOffset(1, 1);
+  	GL11.glDisable(GL11.GL_LIGHTING);
+  	GL11.glColor3f(1.0f, 1.0f, 1.0f);      
+  	GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
+  	GL11.glPolygonOffset(1, 1);
 
     for(int i=0; i<faces.size(); i++){
-      gl.glBegin(GL.GL_POLYGON);
+    	GL11.glBegin(GL11.GL_POLYGON);
       
       for(int j=0; j<faces.get(i).v.length; j++){
-        gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
+      	GL11.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
       }
       
-      gl.glEnd();
+      GL11.glEnd();
     }
     
-    gl.glDisable(GL.GL_POLYGON_OFFSET_FILL);
+    GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL);
   }
   
   /**
    * Draw the shaded faces of the model.
-   * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
    * @param SMOOTH if true the vertex normals will be used instead of the face normals
    */
-  private void drawShaded(GL gl, Mesh mesh, boolean SMOOTH)
+  private void drawShaded(Mesh mesh, boolean SMOOTH)
   {
-  	bindTextures(gl, mesh, true);	//Note: must force rebinding in case the canvas is resized!
+  	bindTextures(mesh, true);	//Note: must force rebinding in case the canvas is resized!
   	
     if(!SMOOTH){
-      drawShadedFlat(gl, mesh);
+      drawShadedFlat(mesh);
     }else{
-      drawShadedSmooth(gl, mesh);
+      drawShadedSmooth(mesh);
     }
     
-    drawShadedDegenerate(gl, mesh);
+    drawShadedDegenerate(mesh);
   }
   
   /**
    * Draw the flat shaded faces of the model.
-   * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
    */
-  private void drawShadedFlat(GL gl, Mesh mesh)
+  private void drawShadedFlat(Mesh mesh)
   {
   	Vector<Point> vertices = mesh.getVertices();
   	Vector<Color> vertex_colors = mesh.getVertexColors();
@@ -1858,107 +1779,106 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
     int tid = -1;
     
     //Draw faces
-    gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
-    gl.glPolygonOffset(1, 1);
+    GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
+    GL11.glPolygonOffset(1, 1);
     
     if(lighting == DrawOption.ENABLED){
     	//Restore default values in case materials were enabled and changed them!
-    	gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT, new float[]{0.2f, 0.2f, 0.2f, 1.0f}, 0);
-    	gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_DIFFUSE, new float[]{0.8f, 0.8f, 0.8f, 1.0f}, 0);
+    	GL11.glMaterial(GL11.GL_FRONT_AND_BACK, GL11.GL_AMBIENT, default_material_ambient);
+    	GL11.glMaterial(GL11.GL_FRONT_AND_BACK, GL11.GL_DIFFUSE, default_material_diffuse);
     	
-    	gl.glEnable(GL.GL_LIGHTING);
+    	GL11.glEnable(GL11.GL_LIGHTING);
     }else if(lighting == DrawOption.MATERIAL){
-	    gl.glColorMaterial(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT_AND_DIFFUSE);
-	    gl.glEnable(GL.GL_COLOR_MATERIAL);
-	    gl.glEnable(GL.GL_LIGHTING);
+    	GL11.glColorMaterial(GL11.GL_FRONT_AND_BACK, GL11.GL_AMBIENT_AND_DIFFUSE);
+    	GL11.glEnable(GL11.GL_COLOR_MATERIAL);
+    	GL11.glEnable(GL11.GL_LIGHTING);
     }
     
     if(texture == DrawOption.DISABLED){
     	TEXTURE = false;
     }else if(texture == DrawOption.DECAL){
-	  	gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_DECAL);
+    	GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL11.GL_DECAL);
 	  }else if(texture == DrawOption.MODULATE){
-	  	gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE);
+	  	GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL11.GL_MODULATE);
 	  }
 
     if(vertex_colors.size() == vertices.size()){															//Use vertex colors
       for(int i=0; i<faces.size(); i++){
         if(faces.get(i).VISIBLE && faces.get(i).v.length >= 3){
-          gl.glBegin(GL.GL_POLYGON);
+        	GL11.glBegin(GL11.GL_POLYGON);
           norm = faces.get(i).normal;
-          gl.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
+          GL11.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
         
           for(int j=0; j<faces.get(i).v.length; j++){
-            gl.glColor3f(vertex_colors.get(faces.get(i).v[j]).r, vertex_colors.get(faces.get(i).v[j]).g, vertex_colors.get(faces.get(i).v[j]).b);
-            gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
+          	GL11.glColor3f(vertex_colors.get(faces.get(i).v[j]).r, vertex_colors.get(faces.get(i).v[j]).g, vertex_colors.get(faces.get(i).v[j]).b);
+          	GL11.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
           }
           
-          gl.glEnd();
+          GL11.glEnd();
         }
       }
     }else{																																		//Use face color
       for(int i=0; i<faces.size(); i++){
         if(faces.get(i).VISIBLE && faces.get(i).v.length >= 3){
         	if(TEXTURE && faces.get(i).uv != null && faces.get(i).material != null && faces.get(i).material.tid != -1){		//Textured 
-        		gl.glEnable(gl.GL_TEXTURE_2D);
+        		GL11.glEnable(GL11.GL_TEXTURE_2D);
             
             if(tid != faces.get(i).material.tid){
             	tid = faces.get(i).material.tid;
-            	gl.glBindTexture(gl.GL_TEXTURE_2D, tid);
+            	GL11.glBindTexture(GL11.GL_TEXTURE_2D, tid);
             }
             
-	          gl.glBegin(GL.GL_POLYGON);
+	          GL11.glBegin(GL11.GL_POLYGON);
 	          norm = faces.get(i).normal;
-	          gl.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
+	          GL11.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
 	          
 	          if(faces.get(i).material != null && faces.get(i).material.diffuse != null){	 
-	          	gl.glColor3f(faces.get(i).material.diffuse.r, faces.get(i).material.diffuse.g, faces.get(i).material.diffuse.b);
+	          	GL11.glColor3f(faces.get(i).material.diffuse.r, faces.get(i).material.diffuse.g, faces.get(i).material.diffuse.b);
 	          }else{
-	          	gl.glColor3f(1.0f, 1.0f, 1.0f);
+	          	GL11.glColor3f(1.0f, 1.0f, 1.0f);
 	          }
 	          
 	          for(int j=0; j<faces.get(i).v.length; j++){
-	            gl.glTexCoord2f(faces.get(i).uv[j].u, faces.get(i).uv[j].v);
-	            gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
+	            GL11.glTexCoord2f(faces.get(i).uv[j].u, faces.get(i).uv[j].v);
+	            GL11.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
 	          }
 	          
-	          gl.glEnd();
-	          gl.glDisable(gl.GL_TEXTURE_2D);
+	          GL11.glEnd();
+	          GL11.glDisable(GL11.GL_TEXTURE_2D);
         	}else{																															//Not textured
-	          gl.glBegin(GL.GL_POLYGON);
+	          GL11.glBegin(GL11.GL_POLYGON);
 	          norm = faces.get(i).normal;
-	          gl.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
+	          GL11.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
 	          
 	          if(faces.get(i).material != null && faces.get(i).material.diffuse != null){
-	          	gl.glColor3f(faces.get(i).material.diffuse.r, faces.get(i).material.diffuse.g, faces.get(i).material.diffuse.b);
+	          	GL11.glColor3f(faces.get(i).material.diffuse.r, faces.get(i).material.diffuse.g, faces.get(i).material.diffuse.b);
 	          }else{
-	          	gl.glColor3f(0.5f, 0.5f, 0.5f);
+	          	GL11.glColor3f(0.5f, 0.5f, 0.5f);
 	          }
 
 	          for(int j=0; j<faces.get(i).v.length; j++){
-	            gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
+	            GL11.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
 	          }
 	          
-	          gl.glEnd();
+	          GL11.glEnd();
         	}
         }
       }
     }
     
     if(lighting == DrawOption.MATERIAL){
-    	gl.glDisable(GL.GL_COLOR_MATERIAL);
+    	GL11.glDisable(GL11.GL_COLOR_MATERIAL);
     }
     
-    gl.glDisable(GL.GL_POLYGON_OFFSET_FILL);
+    GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL);
   }
   
   /**
    * Draw the flat shaded selected faces of the model.  Note, color can and should be set externally!
-   * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
    * @param selected_faces the faces to draw
    */
-  private void drawShadedFlat(GL gl, Mesh mesh, Vector<Integer> selected_faces)
+  private void drawShadedFlat(Mesh mesh, Vector<Integer> selected_faces)
   {
   	Vector<Point> vertices = mesh.getVertices();
   	Vector<Face> faces = mesh.getFaces();
@@ -1966,39 +1886,38 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
     int index;
     
     //Draw faces
-    gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
-    gl.glPolygonOffset(-1, -1);
+    GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
+    GL11.glPolygonOffset(-1, -1);
   	
-    gl.glColorMaterial(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT_AND_DIFFUSE);
-    gl.glEnable(GL.GL_COLOR_MATERIAL);
-    gl.glEnable(GL.GL_LIGHTING);
+    GL11.glColorMaterial(GL11.GL_FRONT_AND_BACK, GL11.GL_AMBIENT_AND_DIFFUSE);
+    GL11.glEnable(GL11.GL_COLOR_MATERIAL);
+    GL11.glEnable(GL11.GL_LIGHTING);
     
     for(int i=0; i<selected_faces.size(); i++){
     	index = selected_faces.get(i);
     	
       if(faces.get(index).VISIBLE && faces.get(index).v.length >= 3){
-        gl.glBegin(GL.GL_POLYGON);
+        GL11.glBegin(GL11.GL_POLYGON);
         norm = faces.get(index).normal;
-        gl.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
+        GL11.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
 
         for(int j=0; j<faces.get(index).v.length; j++){
-          gl.glVertex3f((float)vertices.get(faces.get(index).v[j]).x, (float)vertices.get(faces.get(index).v[j]).y, (float)vertices.get(faces.get(index).v[j]).z);
+          GL11.glVertex3f((float)vertices.get(faces.get(index).v[j]).x, (float)vertices.get(faces.get(index).v[j]).y, (float)vertices.get(faces.get(index).v[j]).z);
         }
         
-        gl.glEnd();
+        GL11.glEnd();
     	}
     }
     
-  	gl.glDisable(GL.GL_COLOR_MATERIAL);
-    gl.glDisable(GL.GL_POLYGON_OFFSET_FILL);
+  	GL11.glDisable(GL11.GL_COLOR_MATERIAL);
+    GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL);
   }
   
   /**
    * Draw the smooth shaded faces of the model using vertex colors.
-   * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
    */
-  private void drawShadedSmooth(GL gl, Mesh mesh)
+  private void drawShadedSmooth(Mesh mesh)
   {
   	Vector<Point> vertices = mesh.getVertices();
   	Vector<Point> vertex_normals = mesh.getVertexNormals();
@@ -2008,33 +1927,33 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
     boolean TEXTURE = true;
     int tid = -1;
     
-    gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
-    gl.glPolygonOffset(1, 1);
+    GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
+    GL11.glPolygonOffset(1, 1);
     
     if(lighting == DrawOption.ENABLED){
     	//Restore default values in case materials were enabled and changed them!
-    	gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT, new float[]{0.2f, 0.2f, 0.2f, 1.0f}, 0);
-    	gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_DIFFUSE, new float[]{0.8f, 0.8f, 0.8f, 1.0f}, 0);
+    	GL11.glMaterial(GL11.GL_FRONT_AND_BACK, GL11.GL_AMBIENT, default_material_ambient);
+    	GL11.glMaterial(GL11.GL_FRONT_AND_BACK, GL11.GL_DIFFUSE, default_material_diffuse);
     	
-    	gl.glEnable(GL.GL_LIGHTING);
+    	GL11.glEnable(GL11.GL_LIGHTING);
     }else if(lighting == DrawOption.MATERIAL){
-	    gl.glColorMaterial(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT_AND_DIFFUSE);
-	    gl.glEnable(GL.GL_COLOR_MATERIAL);
-	    gl.glEnable(GL.GL_LIGHTING);
+	    GL11.glColorMaterial(GL11.GL_FRONT_AND_BACK, GL11.GL_AMBIENT_AND_DIFFUSE);
+	    GL11.glEnable(GL11.GL_COLOR_MATERIAL);
+	    GL11.glEnable(GL11.GL_LIGHTING);
     }
     
     if(texture == DrawOption.DISABLED){
     	TEXTURE = false;
     }else if(texture == DrawOption.DECAL){
-	  	gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_DECAL);
+	  	GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL11.GL_DECAL);
 	  }else if(texture == DrawOption.MODULATE){
-	  	gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE);
+	  	GL11.glTexEnvi(GL11.GL_TEXTURE_ENV, GL11.GL_TEXTURE_ENV_MODE, GL11.GL_MODULATE);
 	  }
     
     if(vertex_colors.size() == vertices.size()){															//Use vertex colors
       for(int i=0; i<faces.size(); i++){
         if(faces.get(i).VISIBLE && faces.get(i).v.length >= 3){
-          gl.glBegin(GL.GL_POLYGON);
+          GL11.glBegin(GL11.GL_POLYGON);
           
           for(int j=0; j<faces.get(i).v.length; j++){
           	if(faces.get(i).vn == null){
@@ -2043,31 +1962,31 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
           		norm = faces.get(i).vn[j];
           	}
           	
-            gl.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
-            gl.glColor3f(vertex_colors.get(faces.get(i).v[j]).r, vertex_colors.get(faces.get(i).v[j]).g, vertex_colors.get(faces.get(i).v[j]).b);
-            gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
+            GL11.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
+            GL11.glColor3f(vertex_colors.get(faces.get(i).v[j]).r, vertex_colors.get(faces.get(i).v[j]).g, vertex_colors.get(faces.get(i).v[j]).b);
+            GL11.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
           }
           
-          gl.glEnd();
+          GL11.glEnd();
         }
       }
     }else{																																		//Use face color
       for(int i=0; i<faces.size(); i++){
         if(faces.get(i).VISIBLE && faces.get(i).v.length >= 3){
         	if(TEXTURE && faces.get(i).uv != null && faces.get(i).material != null && faces.get(i).material.tid != -1){		//Textured 
-        		gl.glEnable(gl.GL_TEXTURE_2D);
+        		GL11.glEnable(GL11.GL_TEXTURE_2D);
             
             if(tid != faces.get(i).material.tid){
             	tid = faces.get(i).material.tid;
-            	gl.glBindTexture(gl.GL_TEXTURE_2D, tid);
+            	GL11.glBindTexture(GL11.GL_TEXTURE_2D, tid);
             }
             
-	          gl.glBegin(GL.GL_POLYGON);
+	          GL11.glBegin(GL11.GL_POLYGON);
 	          
 	          if(faces.get(i).material != null && faces.get(i).material.diffuse != null){
-	          	gl.glColor3f(faces.get(i).material.diffuse.r, faces.get(i).material.diffuse.g, faces.get(i).material.diffuse.b);
+	          	GL11.glColor3f(faces.get(i).material.diffuse.r, faces.get(i).material.diffuse.g, faces.get(i).material.diffuse.b);
 	          }else{
-	          	gl.glColor3f(1.0f, 1.0f, 1.0f);
+	          	GL11.glColor3f(1.0f, 1.0f, 1.0f);
 	          }
 	        
 	          for(int j=0; j<faces.get(i).v.length; j++){
@@ -2077,20 +1996,20 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
 	          		norm = faces.get(i).vn[j];
 	          	}
 	          	
-	            gl.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
-	            gl.glTexCoord2f(faces.get(i).uv[j].u, faces.get(i).uv[j].v);
-	            gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
+	            GL11.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
+	            GL11.glTexCoord2f(faces.get(i).uv[j].u, faces.get(i).uv[j].v);
+	            GL11.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
 	          }
 	          
-	          gl.glEnd();
-	          gl.glDisable(gl.GL_TEXTURE_2D);
+	          GL11.glEnd();
+	          GL11.glDisable(GL11.GL_TEXTURE_2D);
         	}else{																															//Not textured
-	          gl.glBegin(GL.GL_POLYGON);
+	          GL11.glBegin(GL11.GL_POLYGON);
 	          
 	          if(faces.get(i).material != null && faces.get(i).material.diffuse != null){
-	          	gl.glColor3f(faces.get(i).material.diffuse.r, faces.get(i).material.diffuse.g, faces.get(i).material.diffuse.b);
+	          	GL11.glColor3f(faces.get(i).material.diffuse.r, faces.get(i).material.diffuse.g, faces.get(i).material.diffuse.b);
 	          }else{
-	          	gl.glColor3f(0.5f, 0.5f, 0.5f);
+	          	GL11.glColor3f(0.5f, 0.5f, 0.5f);
 	          }
 	          
 	          for(int j=0; j<faces.get(i).v.length; j++){
@@ -2100,65 +2019,63 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
 	          		norm = faces.get(i).vn[j];
 	          	}
 	          	
-	            gl.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
-	            gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
+	            GL11.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
+	            GL11.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
 	          }
 	          
-	          gl.glEnd();
+	          GL11.glEnd();
         	}
         }
       }
     }
       
     if(lighting == DrawOption.MATERIAL){
-    	gl.glDisable(GL.GL_COLOR_MATERIAL);
+    	GL11.glDisable(GL11.GL_COLOR_MATERIAL);
     }
     
-    gl.glDisable(GL.GL_POLYGON_OFFSET_FILL);
+    GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL);
   }
   
   /**
    * Draw degenerate polygons (i.e. edges).
-   * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
    */
-  private void drawShadedDegenerate(GL gl, Mesh mesh)
+  private void drawShadedDegenerate(Mesh mesh)
   {
   	Vector<Point> vertices = mesh.getVertices();
   	Vector<Color> vertex_colors = mesh.getVertexColors();
   	Vector<Face> faces = mesh.getFaces();
   	
-    gl.glDisable(GL.GL_LIGHTING);
-    gl.glLineWidth(1.0f);
-    gl.glBegin(GL.GL_LINES);
+    GL11.glDisable(GL11.GL_LIGHTING);
+    GL11.glLineWidth(1.0f);
+    GL11.glBegin(GL11.GL_LINES);
 
     for(int i=0; i<faces.size(); i++){
       if(faces.get(i).VISIBLE && faces.get(i).v.length == 2){
         for(int j=0; j<faces.get(i).v.length; j++){
         	if(faces.get(i).material != null && faces.get(i).material.diffuse != null){
-	        	gl.glColor3f(faces.get(i).material.diffuse.r, faces.get(i).material.diffuse.g, faces.get(i).material.diffuse.b);
+	        	GL11.glColor3f(faces.get(i).material.diffuse.r, faces.get(i).material.diffuse.g, faces.get(i).material.diffuse.b);
         	}else if(faces.get(i).v[j] < vertex_colors.size()){
-            gl.glColor3f(vertex_colors.get(faces.get(i).v[j]).r, vertex_colors.get(faces.get(i).v[j]).g, vertex_colors.get(faces.get(i).v[j]).b);
+            GL11.glColor3f(vertex_colors.get(faces.get(i).v[j]).r, vertex_colors.get(faces.get(i).v[j]).g, vertex_colors.get(faces.get(i).v[j]).b);
 	        }else{
-	        	gl.glColor3f(0.5f, 0.5f, 0.5f);
+	        	GL11.glColor3f(0.5f, 0.5f, 0.5f);
 	        }	
         	
-          gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
+          GL11.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
         }
       }
     }
     
-    gl.glEnd();
+    GL11.glEnd();
   }
   
   /**
    * Draw the faces shading them only with regards to a specular compent.  This is done in a manner
    * similar to that in drawIllustration.
-   * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
    * @param M the current modelview matrix
    */
-  private void drawHighlights(GL gl, Mesh mesh, double[][] M)
+  private void drawHighlights(Mesh mesh, double[][] M)
   {
   	Vector<Point> vertices = mesh.getVertices();
   	Vector<Point> vertex_normals = mesh.getVertexNormals();
@@ -2174,12 +2091,12 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
     Color specular = new Color(1, 1, 1);
     Color color = new Color();
     
-    gl.glDisable(GL.GL_LIGHTING);
-    gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
-    gl.glPolygonOffset(1, 1);
+    GL11.glDisable(GL11.GL_LIGHTING);
+    GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
+    GL11.glPolygonOffset(1, 1);
 
     for(int i=0; i<faces.size(); i++){
-      gl.glBegin(GL.GL_POLYGON);
+      GL11.glBegin(GL11.GL_POLYGON);
       
       for(int j=0; j<faces.get(i).v.length; j++){
         norm = Point.transform(M, vertex_normals.get(faces.get(i).v[j]));
@@ -2194,24 +2111,23 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
         color.g += ks*specular.g*Math.pow(tmpf,ns);
         color.b += ks*specular.b*Math.pow(tmpf,ns);
           
-        gl.glColor3f(color.r, color.g, color.b);
-        gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
+        GL11.glColor3f(color.r, color.g, color.b);
+        GL11.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
       }
       
-      gl.glEnd();
+      GL11.glEnd();
     }
     
-    gl.glDisable(GL.GL_POLYGON_OFFSET_FILL);
+    GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL);
   }
   
   /**
    * Draw the faces shaded in a non-photorealistic manner that is similar to book illustrations which
    * emphasize shape within the rendering [Gooch et al., SIGGRAPH 1998].
-   * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
    * @param M the current modelview matrix
    */
-  private void drawIllustration(GL gl, Mesh mesh, double[][] M)
+  private void drawIllustration(Mesh mesh, double[][] M)
   {
   	Vector<Point> vertices = mesh.getVertices();
   	Vector<Point> vertex_normals = mesh.getVertexNormals();
@@ -2235,12 +2151,12 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
     Color kwarm = new Color();
     Color color = new Color();
     
-    gl.glDisable(GL.GL_LIGHTING);
-    gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
-    gl.glPolygonOffset(1, 1);
+    GL11.glDisable(GL11.GL_LIGHTING);
+    GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
+    GL11.glPolygonOffset(1, 1);
 
     for(int i=0; i<faces.size(); i++){
-      gl.glBegin(GL.GL_POLYGON);
+      GL11.glBegin(GL11.GL_POLYGON);
       
       for(int j=0; j<faces.get(i).v.length; j++){
         norm = Point.transform(M, vertex_normals.get(faces.get(i).v[j]));
@@ -2265,24 +2181,23 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
         color.g += ks*specular.g*Math.pow(tmpf,ns);
         color.b += ks*specular.b*Math.pow(tmpf,ns);
           
-        gl.glColor3f(color.r, color.g, color.b);
-        gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
+        GL11.glColor3f(color.r, color.g, color.b);
+        GL11.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
       }
       
-      gl.glEnd();
+      GL11.glEnd();
     }
     
-    gl.glDisable(GL.GL_POLYGON_OFFSET_FILL);
+    GL11.glDisable(GL11.GL_POLYGON_OFFSET_FILL);
   }
   
   /**
    * Draw the faces shaded in a non-photorealistic manner that is similar to 
    * metallic illustrations [Gooch et al., SIGGRAPH 1998].
-   * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
    * @param M the current modelview matrix
    */
-  private void drawMetal(GL gl, Mesh mesh, double[][] M)
+  private void drawMetal(Mesh mesh, double[][] M)
   {
   	Vector<Point> vertices = mesh.getVertices();
   	Vector<Face> faces = mesh.getFaces();
@@ -2300,12 +2215,12 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
     Point tmpv = new Point();
     double tmpd;
     
-    gl.glDisable(GL.GL_LIGHTING);
-    gl.glEnable(GL.GL_POLYGON_OFFSET_FILL);
-    gl.glPolygonOffset(1, 1);
+    GL11.glDisable(GL11.GL_LIGHTING);
+    GL11.glEnable(GL11.GL_POLYGON_OFFSET_FILL);
+    GL11.glPolygonOffset(1, 1);
 
     for(int i=0; i<faces.size(); i++){
-      gl.glBegin(GL.GL_POLYGON);
+      GL11.glBegin(GL11.GL_POLYGON);
       
       for(int j=0; j<faces.get(i).v.length; j++){
         int k = faces.get(i).v[j];
@@ -2322,11 +2237,11 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
         if(tmpd > 1) tmpd = 1;
         tmpd = stripes.get((int)Math.round(tmpd * ((double)(stripes.size()-1))));
         
-        gl.glColor3f((float)tmpd, (float)tmpd, (float)tmpd);
-        gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
+        GL11.glColor3f((float)tmpd, (float)tmpd, (float)tmpd);
+        GL11.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
       }
       
-      gl.glEnd();
+      GL11.glEnd();
     }
   }
 
@@ -2421,7 +2336,7 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
     }
     
     //Give this panel focus to capture key events!
-    canvas.requestFocus();
+    requestFocus();
   }
   
   /**
@@ -2957,8 +2872,6 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
     refresh(true);
   }
   
-  public void reshape(GLAutoDrawable gLDrawable, int x, int y, int width, int height) {}
-  public void displayChanged(GLAutoDrawable gLDrawable, boolean modeChanged, boolean deviceChanged) {}
   public void keyReleased(KeyEvent e) {}
   public void keyTyped(KeyEvent e) {}
   public void mouseExited(MouseEvent e) {}
@@ -2976,17 +2889,68 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
     super.paintComponent(g);
     setSize((int)getSize().getWidth(), (int)getSize().getHeight());
     
-		if(mesh instanceof AnimatedMesh){
-			((AnimatedMesh)mesh).setMesh();
-			refreshList();
+		if(!INITIALIZED){
+			try{
+				pbuffer = new Pbuffer(width, height, new PixelFormat(32, 0, 0, 0, 0), null, null);
+				pbuffer.makeCurrent();
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+	
+			buffered_image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+			image = ((DataBufferInt)buffered_image.getRaster().getDataBuffer()).getData();
+			int_buffer = ByteBuffer.allocateDirect(width*height*4).order(ByteOrder.LITTLE_ENDIAN).asIntBuffer();
+	
+			init();
+			
+			INITIALIZED = true;
+			start();
+		}else{		
+			
+			if(mesh instanceof AnimatedMesh){
+				((AnimatedMesh)mesh).setMesh();
+				refreshList();
+			} 
+			
+			display();
+	
+			//Capture currently rendered frame
+			GL11.glReadPixels(0, 0, width, height, GL12.GL_BGRA, GL11.GL_UNSIGNED_BYTE, int_buffer);
+			int_buffer.clear();
+	
+			for(int x=height-1; x>=0; x--){
+				int_buffer.get(image, x*width, width);
+			}
+	
+			int_buffer.flip();
+			g.drawImage(buffered_image, 0, 0, null);
 		}
-		
-    if(canvas instanceof GLCanvas){
-    	((GLCanvas)canvas).display();
-    }else if(canvas instanceof GLJPanel){
-    	((GLJPanel)canvas).display();
-    }	 
   }
+
+	/**
+	 * Overridden update to avoid clearing.
+	 * @param g the graphics context
+	 */
+	public void update(Graphics g)
+	{
+		paint(g);
+	}
+
+	/**
+	 * Start rendering.
+	 */
+	public void start()
+	{
+		timer.start();
+	}
+
+	/**
+	 * Stop rendering.
+	 */
+	public void stop()
+	{
+		timer.stop();
+	}
 
 	/**
    * The main function used if this class is run by itself.
@@ -2994,7 +2958,7 @@ public class ModelViewer extends JPanel implements GLEventListener, KeyListener,
    */
   public static void main(String args[])
   {
-    ModelViewer mv = new ModelViewer("ModelViewer.ini", false);
+    ModelViewer mv = new ModelViewer("ModelViewer.ini");
     mv.AUTO_REFRESH = true;
     
     JFrame frame = new JFrame("Model Viewer");

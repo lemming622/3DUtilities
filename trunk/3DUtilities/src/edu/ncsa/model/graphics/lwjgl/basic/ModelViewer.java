@@ -155,6 +155,19 @@ public class ModelViewer extends JPanel implements ActionListener, MouseListener
 	}
 
 	/**
+	 * Convert an array of floats to a FloatBuffer.
+	 * @param array the array to convert
+	 * @return the resulting FloatBuffer
+	 */
+	public static FloatBuffer toFloatBuffer(float[] array)
+	{
+		FloatBuffer fb = ByteBuffer.allocateDirect(array.length*4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+	 	fb.put(array).flip();
+	 	
+	 	return fb;
+	}
+
+	/**
    * Load model into our mesh structure.
    * @param filename the absolute name of the file
    * @param progressCallBack the callback handling progress updates
@@ -213,27 +226,14 @@ public class ModelViewer extends JPanel implements ActionListener, MouseListener
 	}
 
 	/**
-	 * Create a FloatBuffer from an array of floats.
-	 * @param array the array to convert
-	 * @return the resulting float buffer
-	 */
-	public static FloatBuffer createFloatBuffer(float[] array)
-	{
-  	FloatBuffer fb = ByteBuffer.allocateDirect(array.length*4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-   	fb.put(array).flip();
-   	
-   	return fb;
-  }
-
-	/**
    * Initialize the OpenGL canvas.
    */
   public void init()
   {
-    FloatBuffer light0_position = createFloatBuffer(new float[]{0.0f, 0.0f, 1.0f, 0.0f});
-    FloatBuffer light1_position = createFloatBuffer(new float[]{0.0f, 0.0f, -1.0f, 0.0f});
-    FloatBuffer light_diff = createFloatBuffer(new float[]{0.7f, 0.7f, 0.7f, 1.0f});
-    FloatBuffer model_ambient = createFloatBuffer(new float[]{0.5f, 0.5f, 0.5f, 1.0f});
+    FloatBuffer light0_position = toFloatBuffer(new float[]{0.0f, 0.0f, 1.0f, 0.0f});
+    FloatBuffer light1_position = toFloatBuffer(new float[]{0.0f, 0.0f, -1.0f, 0.0f});
+    FloatBuffer light_diff = toFloatBuffer(new float[]{0.7f, 0.7f, 0.7f, 1.0f});
+    FloatBuffer model_ambient = toFloatBuffer(new float[]{0.5f, 0.5f, 0.5f, 1.0f});
     
     GL11.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
     GL11.glColor3f(0.5f, 0.5f, 0.5f);

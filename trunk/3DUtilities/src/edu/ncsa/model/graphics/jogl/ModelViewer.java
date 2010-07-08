@@ -45,9 +45,11 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   
   private float[] light0_position = {0.0f, 0.0f, 1.0f, 0.0f};
   private float[] light1_position = {0.0f, 0.0f, -1.0f, 0.0f};
-  private float[] light_diff = {0.7f, 0.7f, 0.7f, 1.0f};    
-  private float[] model_ambient = {0.5f, 0.5f, 0.5f, 1.0f}; 
-  
+  private float[] light_diffuse = {0.7f, 0.7f, 0.7f, 1.0f};
+  private float[] light_ambient = {0.5f, 0.5f, 0.5f, 1.0f};     
+  private float[] default_material_ambient = new float[]{0.2f, 0.2f, 0.2f, 1.0f};
+	private float[] default_material_diffuse = new float[]{0.8f, 0.8f, 0.8f, 1.0f};
+	
   //Declared here to prevent from being re-allocated in display()!
   private double[] projection_tmp = new double[16];
   private double[] modelview_tmp = new double[16];
@@ -1154,14 +1156,14 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     gl.glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
     
     gl.glLightfv(GL.GL_LIGHT0, GL.GL_POSITION, light0_position, 0);
-    gl.glLightfv(GL.GL_LIGHT0, GL.GL_DIFFUSE, light_diff, 0);
+    gl.glLightfv(GL.GL_LIGHT0, GL.GL_DIFFUSE, light_diffuse, 0);
     gl.glEnable(GL.GL_LIGHT0);
     
     gl.glLightfv(GL.GL_LIGHT1, GL.GL_POSITION, light1_position, 0);
-    gl.glLightfv(GL.GL_LIGHT1, GL.GL_DIFFUSE, light_diff, 0);
+    gl.glLightfv(GL.GL_LIGHT1, GL.GL_DIFFUSE, light_diffuse, 0);
     gl.glEnable(GL.GL_LIGHT1);
     
-    gl.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT, model_ambient, 0);
+    gl.glLightModelfv(GL.GL_LIGHT_MODEL_AMBIENT, light_ambient, 0);
     gl.glLightModeli(GL.GL_LIGHT_MODEL_TWO_SIDE, GL.GL_TRUE);
     
     gl.glEnable(GL.GL_NORMALIZE);    
@@ -1822,8 +1824,8 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     
     if(lighting == DrawOption.ENABLED){
     	//Restore default values in case materials were enabled and changed them!
-    	gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT, new float[]{0.2f, 0.2f, 0.2f, 1.0f}, 0);
-    	gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_DIFFUSE, new float[]{0.8f, 0.8f, 0.8f, 1.0f}, 0);
+    	gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT, default_material_ambient, 0);
+    	gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_DIFFUSE, default_material_diffuse, 0);
     	
     	gl.glEnable(GL.GL_LIGHTING);
     }else if(lighting == DrawOption.MATERIAL){
@@ -1972,8 +1974,8 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     
     if(lighting == DrawOption.ENABLED){
     	//Restore default values in case materials were enabled and changed them!
-    	gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT, new float[]{0.2f, 0.2f, 0.2f, 1.0f}, 0);
-    	gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_DIFFUSE, new float[]{0.8f, 0.8f, 0.8f, 1.0f}, 0);
+    	gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_AMBIENT, default_material_ambient, 0);
+    	gl.glMaterialfv(GL.GL_FRONT_AND_BACK, GL.GL_DIFFUSE, default_material_diffuse, 0);
     	
     	gl.glEnable(GL.GL_LIGHTING);
     }else if(lighting == DrawOption.MATERIAL){
