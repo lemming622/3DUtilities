@@ -6,13 +6,14 @@
 
 	<path id="classpath">
 		<fileset dir="lib">
+			<exclude name="**/jogl-2.0-beta10/*.jar"/>
 			<include name="**/*.jar"/>
 		</fileset>
 	</path>
 	
 	<target name="compile" description="Compiles the Java source code">
 		<mkdir dir="${classes}"/>
-		<javac srcdir="src" destdir="${classes}" classpathref="classpath"/>
+		<javac srcdir="src" destdir="${classes}" classpathref="classpath" excludes="edu/ncsa/model/graphics/jogl2/**"/>
 	</target>
 	
 	<target name="archive" depends="compile" description="Creates the JAR file">
