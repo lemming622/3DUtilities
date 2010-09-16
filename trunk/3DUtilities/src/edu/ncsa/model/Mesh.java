@@ -658,6 +658,7 @@ public class Mesh
 	  //Add geometry based meta data
 	  addMetaData("Vertices", Integer.toString(vertices.size()));
 	  addMetaData("Faces", Integer.toString(faces.size()));
+	  addMetaData("Radius", Utility.round(getRadius(),2));
 	}
 
 	/**
@@ -2014,6 +2015,74 @@ public class Mesh
   	}
   	
   	return centroid;
+  }
+  
+  /**
+   * Delete a group of vertices (along with any associated faces).
+   * @param component the indices of the vertices to delete
+   */
+  public void deleteVertices(Vector<Integer> component)
+  {
+  	Vector<Boolean> valid_vertices = new Vector<Boolean>();
+  	Vector<Integer> vmap = new Vector<Integer>();
+  	Vector<Point> vertices_new = new Vector<Point>();
+  	Vector<Face> faces_new = new Vector<Face>();
+  	int index, count;
+  	boolean FOUND;
+  	
+  	//Create valid vertex map
+  	for(int i=0; i<vertices.size(); i++){
+  		valid_vertices.add(true);
+  	}
+  	
+  	for(int i=0; i<component.size(); i++){
+  		index = component.get(i);
+  		valid_vertices.set(index, false);
+  	}
+  	
+  	count = 0;
+  	
+  	for(int i=0; i<valid_vertices.size(); i++){
+  		if(valid_vertices.get(i)){
+  			vmap.add(count++);
+  		}else{
+  			vmap.add(-1);
+  		}
+  	}
+  	
+  	//Delete vertices
+  	for(int i=0; i<vertices.size(); i++){
+  		if(valid_vertices.get(i)){
+  			vertices_new.add(vertices.get(i));
+  		}
+  	}
+  	
+  	vertices = vertices_new;
+  	
+  	//Delete faces that use these vertices
+  	for(int i=0; i<faces.size(); i++){
+  		FOUND = false;
+  		
+  		for(int j=0; j<faces.get(i).v.length; j++){
+  			if(!valid_vertices.get(faces.get(i).v[j])){
+  				FOUND = true;
+  				break;
+  			}
+  		}
+  		
+  		if(!FOUND){
+  			faces_new.add(faces.get(i));
+  		}
+  	}
+  	
+  	faces = faces_new;
+  	
+  	//Adjust face vertex indices
+  	for(int i=0; i<faces.size(); i++){
+  		for(int j=0; j<faces.get(i).v.length; j++){
+  			faces.get(i).v[j] = vmap.get(faces.get(i).v[j]);
+  		}
+  	}
   }
   
   /**

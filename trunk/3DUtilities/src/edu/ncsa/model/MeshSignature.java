@@ -5,7 +5,7 @@ import java.util.*;
 
 /**
  * The interface for mesh signatures used to describe and compare 3D models.
- *  @author Kenton McHenry
+ * @author Kenton McHenry
  */
 abstract public class MeshSignature
 {
@@ -16,11 +16,71 @@ abstract public class MeshSignature
   
   abstract public String getType();
   abstract public MeshSignature clone();
-  abstract public void setSignature(Mesh m);
-  
-  /**
+	abstract public void setSignature(Mesh m);
+
+	/**
+	 * Get the signature.
+	 * @return the mesh signature
+	 */
+	public Object getSignature()
+	{
+		return signature;
+	}
+	
+	/**
+	 * Compare the model from which this signature is derived to another signature from another model.
+	 * @param ms another mesh signature
+	 * @return the difference in models based on the signature (larger values indicate more different models)
+	 */
+	public double compareTo(MeshSignature ms)
+	{
+	  double tmpd = 0;
+	  
+	  for(int i=0; i<signature.size(); i++){
+	    tmpd += MatrixUtility.distance(signature.get(i), ms.signature.get(i));
+	  }
+	  
+	  return tmpd;
+	}
+
+	/**
+	 * Get a string representation of this signature.
+	 */
+	public String toString()
+	{
+		String str = "";
+		
+		for(int i=0; i<signature.size(); i++){
+		  str += "[" + i + "]: ";
+		  
+		  for(int j=0; j<signature.get(i).length; j++){
+		  	str += signature.get(i)[j];
+		  	if(j < signature.get(i).length-1) str += ", ";
+		  }
+		  
+		  str += "\n";
+		}
+		
+		return str;
+	}
+
+	/**
+	 * Get the magnitude of this signature (treating it like one long vector).
+	 */
+	public double magnitude()
+	{
+	  double tmpd = 0;
+	  
+	  for(int i=0; i<signature.size(); i++){
+	    tmpd += MatrixUtility.distance(signature.get(i), new double[signature.get(i).length]);
+	  }
+	  
+	  return tmpd;
+	}
+
+	/**
    * Save the signature to a file.
-   *  @param filename the file to save to
+   * @param filename the file to save to
    */
   public void save(String filename)
   {
@@ -41,7 +101,7 @@ abstract public class MeshSignature
   
   /**
    * Load the signature from a file.
-   *  @param filename the file to load from
+   * @param filename the file to load from
    */
   public void load(String filename)
   {
@@ -90,56 +150,5 @@ abstract public class MeshSignature
     }catch(Exception e){
     	e.printStackTrace();
     }
-  }
-  
-  /**
-   * Compare the model from which this signature is derived to another signature from another model.
-   *  @param md another mesh signature
-   *  @return the difference in models based on the signature (larger values indicate more different models)
-   */
-  public double compareTo(MeshSignature md)
-  {
-    double tmpd = 0;
-    
-    for(int i=0; i<signature.size(); i++){
-      tmpd += MatrixUtility.distance(signature.get(i), md.signature.get(i));
-    }
-    
-    return tmpd;
-  }
-  
-  /**
-   * Get the magnitude of this signature (treating it like one long vector).
-   */
-  public double magnitude()
-  {
-    double tmpd = 0;
-    
-    for(int i=0; i<signature.size(); i++){
-      tmpd += MatrixUtility.distance(signature.get(i), new double[signature.get(i).length]);
-    }
-    
-    return tmpd;
-  }
-  
-  /**
-   * Get a string representation of this signature.
-   */
-  public String toString()
-  {
-  	String str = "";
-  	
-  	for(int i=0; i<signature.size(); i++){
-  	  str += "[" + i + "]: ";
-  	  
-  	  for(int j=0; j<signature.get(i).length; j++){
-  	  	str += signature.get(i)[j];
-  	  	if(j < signature.get(i).length-1) str += ", ";
-  	  }
-  	  
-  	  str += "\n";
-  	}
-  	
-  	return str;
   }
 }

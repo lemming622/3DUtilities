@@ -2601,6 +2601,13 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   			selected_rotation_last = added_rotation_last.get(index);
   			selected_transformation = added_transformations.get(index);
   		}
+  	}else if(e.getKeyCode() == KeyEvent.VK_DELETE){
+  		mesh.deleteVertices(selected_vertices);
+  		
+  		selected_vertices = null;
+  		selected_vertex_faces = null;
+  		
+  		refresh(true);
   	}else if(e.getKeyCode() == KeyEvent.VK_SHIFT){
   		if(BENDING_JOINT){
   			bend_smoothness = (bend_smoothness+1) % 3;
