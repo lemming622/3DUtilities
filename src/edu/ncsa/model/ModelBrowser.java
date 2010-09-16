@@ -24,7 +24,7 @@ public class ModelBrowser extends JPanel implements ActionListener, TreeSelectio
   private int default_viewer_height = 700;
   
   private int left_panel_width = 340;
-  private int bottom_panel_height = 120;
+  private int bottom_panel_height = 125;
   private int window_width;
   private int window_height;
   private int viewer_width;
@@ -100,7 +100,7 @@ public class ModelBrowser extends JPanel implements ActionListener, TreeSelectio
     
     //Load initialization file
     try{
-      loadIni(new FileInputStream("ModelBrowser.ini"));
+      loadINI(new FileInputStream("ModelBrowser.ini"));
     }catch(Exception e) {}
     
     setSize(default_viewer_width + left_panel_width, default_viewer_height + bottom_panel_height);
@@ -224,7 +224,7 @@ public class ModelBrowser extends JPanel implements ActionListener, TreeSelectio
    * Load an INI file and initialize this class.
    *  @param fis the file stream to load from
    */
-  public void loadIni(FileInputStream fis)
+  public void loadINI(FileInputStream fis)
   {
     try{
       BufferedReader ins = new BufferedReader(new InputStreamReader(fis));
@@ -826,7 +826,7 @@ public class ModelBrowser extends JPanel implements ActionListener, TreeSelectio
     
     //Refresh mesh information panel
     outp.setLeftOffset(40);
-    outp.setText(modelviewer.get(0).mesh.getMetaDataHTML(new String[]{"Name", "File", "Type", "Vertices", "Faces"}, true));
+    outp.setText(modelviewer.get(0).mesh.getMetaDataHTML(new String[]{"Name", "File", "Type", "Vertices", "Faces", "Radius"}, true));
     
     //Set viewer locations
     if(modelviewer.size() > 1){
