@@ -56,6 +56,7 @@ public class MeshLoader_PC extends MeshLoader
 		
 		if(Utility.exists(filename + "/cameras.txt")){
 			cameras = Camera.loadCameras(filename + "/cameras.txt");
+			Camera.printCameras(cameras);
 		}
     
     mesh.setVertices(vertices);
