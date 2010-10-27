@@ -3347,7 +3347,7 @@ public class MeshAuxiliary
         BufferedReader ins = new BufferedReader(new InputStreamReader(new FileInputStream(filename)));
 
         while((line=ins.readLine()) != null){
-          tokens = Utility.split(line, ' ', true);
+          tokens = Utility.split(line.trim(), ' ', true);
           
           //Allocate space for this camera if not currently allocated        
           name = tokens.get(0);
@@ -3428,6 +3428,40 @@ public class MeshAuxiliary
       }
       
       return new Vector<Camera>(cameras.values());
+    }
+    
+    /**
+     * Print cameras.
+     * @param cameras the cameras to print
+     */
+    public static void printCameras(Vector<Camera> cameras)
+    {
+    	double[][] K, RT;
+    	
+    	for(int c=0; c<cameras.size(); c++){
+    		K = cameras.get(c).getK();
+    		RT = cameras.get(c).getRT();
+    		
+    		System.out.println("\nK" + (c+1) + ":");
+
+    		for(int j=0; j<4; j++){
+	    		for(int i=0; i<4; i++){
+	    			System.out.print(K[j][i] + " ");
+	    		}
+	    		
+	    		System.out.println();
+    		}
+    		
+    		System.out.println("\nRT" + (c+1) + ":");
+
+    		for(int j=0; j<4; j++){
+	    		for(int i=0; i<4; i++){
+	    			System.out.print(RT[j][i] + " ");
+	    		}
+	    		
+	    		System.out.println();
+    		}
+    	}
     }
     
 	  /**
