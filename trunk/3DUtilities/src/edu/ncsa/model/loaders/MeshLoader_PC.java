@@ -60,7 +60,14 @@ public class MeshLoader_PC extends MeshLoader
 		}
     
     mesh.setVertices(vertices);
-    mesh.addCameras(cameras, 1000, new Color(0.5f, 0.5f, 1), new Color(1, 1, 0));
+    
+    if(true){		//Debug
+    	mesh.addCamera(cameras.get(0), 1000, new Color(0.5f, 0.5f, 1), new Color(1, 1, 0));
+    	mesh.addCamera(cameras.get(1), 1000, new Color(0.5f, 0.5f, 1), new Color(1, 0, 0));
+    }else{
+    	mesh.addCameras(cameras, 1000, new Color(0.5f, 0.5f, 1), new Color(1, 1, 0));
+    }
+    
     mesh.initialize();
     
 		return mesh;
