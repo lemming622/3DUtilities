@@ -2,6 +2,7 @@ package edu.ncsa.model.graphics.jogl;
 import edu.ncsa.model.*;
 import edu.ncsa.model.Mesh.*;
 import edu.ncsa.model.MeshAuxiliary.*;
+import edu.ncsa.model.Mesh;
 import edu.ncsa.model.MeshAuxiliary.Color;
 import edu.ncsa.model.MeshAuxiliary.Point;
 import edu.ncsa.image.*;
@@ -94,6 +95,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   private JCheckBoxMenuItem menuitem_AXIS;
   private JCheckBoxMenuItem menuitem_PC_AXIS;
   private JCheckBoxMenuItem menuitem_POINTS;
+  private JCheckBoxMenuItem menuitem_ISOLATED_POINTS;
   private JCheckBoxMenuItem menuitem_WIRE;
   private JCheckBoxMenuItem menuitem_OUTLINE;
   private JRadioButtonMenuItem menuitem_TRANSPARENT;
@@ -131,6 +133,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   private boolean AXIS = true;
   private boolean PC_AXIS = false;
   private boolean POINTS = false;
+  private boolean ISOLATED_POINTS = false;
   private boolean WIRE = false;
   private boolean OUTLINE = false;
   private boolean TRANSPARENT = false;
@@ -592,6 +595,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     menuitem_PC_AXIS = new JCheckBoxMenuItem("PC Axis"); menuitem_PC_AXIS.addActionListener(this); submenu1.add(menuitem_PC_AXIS); menuitem_PC_AXIS.setState(PC_AXIS);
     submenu1.addSeparator();
     menuitem_POINTS = new JCheckBoxMenuItem("Points"); menuitem_POINTS.addActionListener(this); submenu1.add(menuitem_POINTS); menuitem_POINTS.setState(POINTS);
+    menuitem_ISOLATED_POINTS = new JCheckBoxMenuItem("Isolated Points"); menuitem_ISOLATED_POINTS.addActionListener(this); submenu1.add(menuitem_ISOLATED_POINTS); menuitem_ISOLATED_POINTS.setState(ISOLATED_POINTS);
     menuitem_WIRE = new JCheckBoxMenuItem("Wire Frame"); menuitem_WIRE.addActionListener(this); submenu1.add(menuitem_WIRE); menuitem_WIRE.setState(WIRE);
     menuitem_OUTLINE = new JCheckBoxMenuItem("Outline"); menuitem_OUTLINE.addActionListener(this); submenu1.add(menuitem_OUTLINE); menuitem_OUTLINE.setState(OUTLINE);
     submenu1.addSeparator();
@@ -1248,6 +1252,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     if(PC_AXIS) drawPCs(gl, mesh, 0.1f*halfwidth);
     
     if(POINTS) drawPoints(gl, mesh);
+    if(ISOLATED_POINTS) drawIsolatedPoints(gl, mesh);
     if(WIRE) drawEdges(gl, mesh);
     if(OUTLINE) drawOutline(gl, mesh, modelview);
     
@@ -1651,6 +1656,41 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   }
   
   /**
+	 * Draw the points that are not connected by faces.
+	 * @param gl the OpenGL context to render to
+	 * @param mesh the mesh to draw
+	 */
+	private void drawIsolatedPoints(GL gl, Mesh mesh)
+	{
+		Vector<Point> vertices = mesh.getVertices();
+		Vector<Color> vertex_colors = mesh.getVertexColors();
+		Vector<Vector<Integer>> vertex_incident_faces = mesh.getVertexIncidentFaces();
+		
+	  gl.glDisable(GL.GL_LIGHTING);
+	  gl.glPointSize(6);		//Default: 2
+	  gl.glBegin(GL.GL_POINTS);
+	  
+	  if(vertex_colors.size() != vertices.size()){
+	    gl.glColor3f(0.0f, 0.0f, 0.0f);
+	    
+	    for(int i=0; i<vertices.size(); i++){
+	    	if(vertex_incident_faces.get(i).isEmpty()){
+	    		gl.glVertex3f((float)vertices.get(i).x, (float)vertices.get(i).y, (float)vertices.get(i).z);
+	    	}
+	    }
+	  }else{
+	    for(int i=0; i<vertices.size(); i++){
+	    	if(vertex_incident_faces.get(i).isEmpty()){
+	        gl.glColor3f(vertex_colors.get(i).r, vertex_colors.get(i).g, vertex_colors.get(i).b);     
+	        gl.glVertex3f((float)vertices.get(i).x, (float)vertices.get(i).y, (float)vertices.get(i).z);
+	    	}
+	    }
+	  }
+	  
+	  gl.glEnd();
+	}
+
+	/**
    * Draw the models edges.
    * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
@@ -1800,7 +1840,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
       drawShadedSmooth(gl, mesh);
     }
     
-    drawShadedDegenerate(gl, mesh);
+    drawLines(gl, mesh);
   }
   
   /**
@@ -2079,11 +2119,11 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   }
   
   /**
-   * Draw degenerate polygons (i.e. edges).
+   * Draw lines (i.e. faces with only 2 points).
    * @param gl the OpenGL context to render to
    * @param mesh the mesh to draw
    */
-  private void drawShadedDegenerate(GL gl, Mesh mesh)
+  private void drawLines(GL gl, Mesh mesh)
   {
   	Vector<Point> vertices = mesh.getVertices();
   	Vector<Color> vertex_colors = mesh.getVertexColors();
@@ -2697,6 +2737,9 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     }else if(source == menuitem_POINTS){
       POINTS = !POINTS;
       menuitem_POINTS.setSelected(POINTS); 
+    }else if(source == menuitem_ISOLATED_POINTS){
+      ISOLATED_POINTS = !ISOLATED_POINTS;
+      menuitem_ISOLATED_POINTS.setSelected(ISOLATED_POINTS); 
     }else if(source == menuitem_WIRE){
       WIRE = !WIRE;
       menuitem_WIRE.setSelected(WIRE);
