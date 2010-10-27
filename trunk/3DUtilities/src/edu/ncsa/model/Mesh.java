@@ -58,6 +58,7 @@ public class Mesh
 	  	loaders = new Vector<MeshLoader>();
 	  	
 	  	try{loaders.add(new MeshLoader_XYZRGB());}catch(Throwable t) {}
+	  	try{loaders.add(new MeshLoader_PC());}catch(Throwable t) {}
 	  	try{loaders.add(new MeshLoader_OBJ_BIN1());}catch(Throwable t) {}
 	  	try{loaders.add(new MeshLoader_OBJ_BIN2());}catch(Throwable t) {}
 	  	try{loaders.add(new MeshLoader_OBJ());}catch(Throwable t) {}
@@ -315,18 +316,16 @@ public class Mesh
 	  //Set vertex incident faces
 	  vertex_incident_faces.clear();
 	  vertex_incident_faces.ensureCapacity(vertices.size());
-	  
-	  if(!faces.isEmpty()){
-	    for(int i=0; i<vertices.size(); i++){
-	      vertex_incident_faces.add(new Vector<Integer>());
-	    }
-	
-	    for(int i=0; i<faces.size(); i++){
-	      for(int j=0; j<faces.get(i).v.length; j++){
-	        vertex_incident_faces.get(faces.get(i).v[j]).add(i);
-	      }
-	    }
-	  }
+    
+	  for(int i=0; i<vertices.size(); i++){
+      vertex_incident_faces.add(new Vector<Integer>());
+    }
+    
+    for(int i=0; i<faces.size(); i++){
+      for(int j=0; j<faces.get(i).v.length; j++){
+        vertex_incident_faces.get(faces.get(i).v[j]).add(i);
+      }
+    }
 	  
 	  //Set vertex neighboring vertices
 	  vertex_neighboring_vertices.clear();
@@ -801,6 +800,15 @@ public class Mesh
   public Point getVertexNormal(int i)
   {
     return vertex_normals.get(i);
+  }
+  
+  /**
+   * Get the vector of vertex incident faces.
+   * @return the vertex incident faces
+   */
+  public Vector<Vector<Integer>> getVertexIncidentFaces()
+  {
+    return vertex_incident_faces;
   }
   
   /**
