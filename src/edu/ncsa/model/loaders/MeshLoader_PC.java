@@ -61,9 +61,13 @@ public class MeshLoader_PC extends MeshLoader
     
     mesh.setVertices(vertices);
     
-    if(true){		//Debug
-    	mesh.addCamera(cameras.get(0), 1000, new Color(0.5f, 0.5f, 1), new Color(1, 1, 0));
-    	mesh.addCamera(cameras.get(1), 1000, new Color(0.5f, 0.5f, 1), new Color(1, 0, 0));
+    if(true && cameras.size() <= 6){		//Color code cameras
+    	if(cameras.size() > 0) mesh.addCamera(cameras.get(0), 1000, new Color(0.5f, 0.5f, 1), new Color(1, 0, 0));
+    	if(cameras.size() > 1) mesh.addCamera(cameras.get(1), 1000, new Color(0.5f, 0.5f, 1), new Color(0, 1, 0));
+    	if(cameras.size() > 2) mesh.addCamera(cameras.get(2), 1000, new Color(0.5f, 0.5f, 1), new Color(0, 0, 1));
+    	if(cameras.size() > 3) mesh.addCamera(cameras.get(3), 1000, new Color(0.5f, 0.5f, 1), new Color(1, 0, 1));
+    	if(cameras.size() > 4) mesh.addCamera(cameras.get(4), 1000, new Color(0.5f, 0.5f, 1), new Color(1, 1, 0));
+    	if(cameras.size() > 5) mesh.addCamera(cameras.get(5), 1000, new Color(0.5f, 0.5f, 1), new Color(0, 1, 1));
     }else{
     	mesh.addCameras(cameras, 1000, new Color(0.5f, 0.5f, 1), new Color(1, 1, 0));
     }
