@@ -17,7 +17,8 @@ public class Mesh
 	
   protected Vector<Point> vertices = new Vector<Point>();
   protected Vector<Face> faces = new Vector<Face>();
-    
+  public boolean TRIANGLE_FACES = false;
+  
   private Vector<Point> vertex_normals = new Vector<Point>();		//Needed by others (e.g. spin images)!
   private Vector<Color> vertex_colors = new Vector<Color>();		//Needed for point clouds!
   private Vector<Texture> textures = new Vector<Texture>();
@@ -130,6 +131,7 @@ public class Mesh
 	{
 		vertices = (Vector<Point>)Utility.deepCopy(m.vertices);
 	  faces = (Vector<Face>)Utility.deepCopy(m.faces);
+	  TRIANGLE_FACES = m.TRIANGLE_FACES;
 	  
 	  vertex_colors = (Vector<Color>)Utility.deepCopy(m.vertex_colors);
 	  vertex_normals = (Vector<Point>)Utility.deepCopy(m.vertex_normals); 
@@ -173,6 +175,7 @@ public class Mesh
 	{
 		vertices = m.vertices; m.vertices = new Vector<Point>();
 	  faces = m.faces; m.faces = new Vector<Face>();
+	  TRIANGLE_FACES = m.TRIANGLE_FACES;
 	  
 	  vertex_colors = m.vertex_colors; m.vertex_colors = new Vector<Color>();
 	  vertex_normals = m.vertex_normals; m.vertex_normals = new Vector<Point>();
@@ -208,6 +211,7 @@ public class Mesh
 	{
 	  vertices.clear();
 	  faces.clear();
+	  TRIANGLE_FACES = false;
 	  
 	  vertex_colors.clear();
 	  vertex_normals.clear();
@@ -312,6 +316,16 @@ public class Mesh
 	  int v0, v1, tmpi;
 	  int initial_capacity = 100000;
 	  boolean FOUND;
+	  
+	  //Check if faces are all triangles
+	  TRIANGLE_FACES = true;
+	  
+	  for(int i=0; i<faces.size(); i++){
+	  	if(faces.get(i).v.length > 3){
+	  		TRIANGLE_FACES = false;
+	  		break;
+	  	}
+	  }
 	  
 	  //Set vertex incident faces
 	  vertex_incident_faces.clear();
