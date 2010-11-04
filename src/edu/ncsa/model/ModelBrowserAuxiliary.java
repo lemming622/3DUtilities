@@ -1,5 +1,5 @@
 package edu.ncsa.model;
-import edu.ncsa.model.graphics.jogl.*;
+import edu.ncsa.model.graphics.*;
 import edu.ncsa.utility.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -44,7 +44,7 @@ public class ModelBrowserAuxiliary
     public String converted_filename = "";
     public String converted_format = "obj";
     public String thumb_image = null;
-    public ModelViewer modelviewer = null;
+    public AbstractModelViewer modelviewer = null;
     
     /**
      * Class constructor to initialize the file information.
