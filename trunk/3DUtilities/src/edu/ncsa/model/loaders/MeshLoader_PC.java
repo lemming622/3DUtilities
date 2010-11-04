@@ -58,7 +58,15 @@ public class MeshLoader_PC extends MeshLoader
 			cameras = Camera.loadCameras(filename + "/cameras.txt");
 			Camera.printCameras(cameras);
 		}
+		
+		//Flip cameras
+		if(true){
+			for(int i=0; i<cameras.size(); i++){
+				cameras.get(i).flipAxes();
+			}
+		}
     
+		//Set the mesh
     mesh.setVertices(vertices);
     
     if(true && cameras.size() <= 6){		//Color code cameras
