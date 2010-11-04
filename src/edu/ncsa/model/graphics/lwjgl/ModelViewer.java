@@ -4,10 +4,11 @@ import edu.ncsa.model.Mesh.*;
 import edu.ncsa.model.MeshAuxiliary.*;
 import edu.ncsa.model.MeshAuxiliary.Color;
 import edu.ncsa.model.MeshAuxiliary.Point;
+import edu.ncsa.model.MeshLoader.ProgressEvent;
+import edu.ncsa.model.graphics.*;
 import edu.ncsa.image.*;
 import edu.ncsa.matrix.*;
 import edu.ncsa.utility.*;
-import edu.ncsa.model.MeshLoader.ProgressEvent;
 import javax.swing.*;
 import javax.swing.Timer;
 import java.awt.*;
@@ -24,7 +25,7 @@ import org.lwjgl.util.glu.*;
  * A panel that allows for the display and manipulation of 3D objects.
  * @author Kenton McHenry
  */
-public class ModelViewer extends JPanel implements KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, ActionListener
+public class ModelViewer extends AbstractModelViewer implements KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, ActionListener
 {
   public Mesh mesh = new Mesh();
   public double[][] rotation_last = MatrixUtility.eye(4);
@@ -259,6 +260,21 @@ public class ModelViewer extends JPanel implements KeyListener, MouseListener, M
     
     setPopupMenu();
     start();
+  }
+  
+  /**
+   * Class constructor specifying INI file, initial dimensions and whether or not
+   * to load the default model from the INI file or not.  The construct also builds the pop
+   * up menu and starts a thread used to refresh the scene.
+   * @param filename INI file name containing initialization values
+   * @param w width of viewer
+   * @param h height of viewer
+   * @param DISABLE_HEAVYWEIGHT disable heavy-weight canvas (not used!)
+   * @param LOAD_DEFAULT if false the viewer will not load the default model from the INI file
+   */
+  public ModelViewer(String filename, int w, int h, boolean DISABLE_HEAVYWEIGHT, boolean LOAD_DEFAULT)
+  {
+  	this(filename, w, h, LOAD_DEFAULT);
   }
   
   /**
@@ -2906,8 +2922,7 @@ public class ModelViewer extends JPanel implements KeyListener, MouseListener, M
 			INITIALIZED = true;
 			start();
 		}else{		
-			
-			if(mesh instanceof AnimatedMesh){
+			if(mesh instanceof AnimatedMesh && ((AnimatedMesh)mesh).getAnimationLoader()!=null){
 				((AnimatedMesh)mesh).setMesh();
 				refreshList();
 			} 

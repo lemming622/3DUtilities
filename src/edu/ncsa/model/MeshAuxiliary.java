@@ -3,7 +3,6 @@ import edu.ncsa.model.graphics.jogl.*;
 import edu.ncsa.utility.*;
 import edu.ncsa.image.*;
 import edu.ncsa.matrix.*;
-
 import java.awt.image.*;
 import java.io.*;
 import java.nio.*;

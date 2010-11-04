@@ -4,10 +4,11 @@ import edu.ncsa.model.Mesh.*;
 import edu.ncsa.model.MeshAuxiliary.*;
 import edu.ncsa.model.MeshAuxiliary.Color;
 import edu.ncsa.model.MeshAuxiliary.Point;
+import edu.ncsa.model.MeshLoader.ProgressEvent;
+import edu.ncsa.model.graphics.*;
 import edu.ncsa.image.*;
 import edu.ncsa.matrix.*;
 import edu.ncsa.utility.*;
-import edu.ncsa.model.MeshLoader.ProgressEvent;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -28,7 +29,7 @@ import javax.media.opengl.glu.*;
  * A panel that allows for the display and manipulation of 3D objects.
  * @author Kenton McHenry
  */
-public class ModelViewer extends JPanel implements Runnable, GLEventListener, KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, ActionListener
+public class ModelViewer extends AbstractModelViewer implements Runnable, GLEventListener, KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, ActionListener
 {
   public Mesh mesh = new Mesh();
   public double[][] rotation_last = MatrixUtility.eye(4);
