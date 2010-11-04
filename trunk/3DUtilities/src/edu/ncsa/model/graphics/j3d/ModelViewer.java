@@ -2,6 +2,7 @@ package edu.ncsa.model.graphics.j3d;
 import edu.ncsa.model.*;
 import edu.ncsa.model.MeshAuxiliary.*;
 import edu.ncsa.model.MeshAuxiliary.Point;
+import edu.ncsa.model.graphics.*;
 import edu.ncsa.utility.*;
 import edu.ncsa.model.MeshLoader.ProgressEvent;
 import javax.swing.*;
@@ -21,7 +22,7 @@ import com.sun.j3d.utils.geometry.*;
  * A panel that allows for the display and manipulation of 3D objects.
  * @author Kenton McHenry
  */
-public class ModelViewer extends JPanel implements ActionListener, MouseListener
+public class ModelViewer extends AbstractModelViewer implements ActionListener, MouseListener
 {
   public Mesh mesh = new Mesh();
 
@@ -72,6 +73,21 @@ public class ModelViewer extends JPanel implements ActionListener, MouseListener
     setLayout(null);
   
     setPopupMenu();
+  }
+  
+  /**
+   * Class constructor specifying INI file, initial dimensions and whether or not
+   * to load the default model from the INI file or not.  The construct also builds the pop
+   * up menu and starts a thread used to refresh the scene.
+   * @param filename INI file name containing initialization values
+   * @param w width of viewer
+   * @param h height of viewer
+   * @param DISABLE_HEAVYWEIGHT disable heavy-weight canvas (not used!)
+   * @param LOAD_DEFAULT if false the viewer will not load the default model from the INI file
+   */
+  public ModelViewer(String filename, int w, int h, boolean DISABLE_HEAVYWEIGHT, boolean LOAD_DEFAULT)
+  {
+  	this(filename, w, h, LOAD_DEFAULT);
   }
 
 	/**

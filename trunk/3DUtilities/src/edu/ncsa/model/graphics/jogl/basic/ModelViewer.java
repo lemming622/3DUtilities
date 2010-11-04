@@ -2,6 +2,7 @@ package edu.ncsa.model.graphics.jogl.basic;
 import edu.ncsa.model.*;
 import edu.ncsa.model.MeshAuxiliary.*;
 import edu.ncsa.model.MeshAuxiliary.Point;
+import edu.ncsa.model.graphics.*;
 import edu.ncsa.utility.*;
 import edu.ncsa.model.MeshLoader.ProgressEvent;
 import javax.swing.*;
@@ -16,7 +17,7 @@ import javax.media.opengl.*;
  * A panel that allows for the display and manipulation of 3D objects.
  * @author Kenton McHenry
  */
-public class ModelViewer extends JPanel implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, ActionListener
+public class ModelViewer extends AbstractModelViewer implements GLEventListener, MouseListener, MouseMotionListener, MouseWheelListener, ActionListener
 {
   public Mesh mesh = new Mesh();
   public RigidTransformation transformation = new RigidTransformation();
@@ -433,7 +434,7 @@ public class ModelViewer extends JPanel implements GLEventListener, MouseListene
    */
   public void paintComponent(Graphics g)
   {
-		if(mesh instanceof AnimatedMesh){
+		if(mesh instanceof AnimatedMesh && ((AnimatedMesh)mesh).getAnimationLoader()!=null){
 			((AnimatedMesh)mesh).setMesh();
 			refreshList();
 		}

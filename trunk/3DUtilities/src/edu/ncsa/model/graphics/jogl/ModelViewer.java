@@ -5,6 +5,7 @@ import edu.ncsa.model.MeshAuxiliary.*;
 import edu.ncsa.model.Mesh;
 import edu.ncsa.model.MeshAuxiliary.Color;
 import edu.ncsa.model.MeshAuxiliary.Point;
+import edu.ncsa.model.graphics.*;
 import edu.ncsa.image.*;
 import edu.ncsa.matrix.*;
 import edu.ncsa.utility.*;
@@ -24,7 +25,7 @@ import javax.media.opengl.glu.*;
  * A panel that allows for the display and manipulation of 3D objects.
  * @author Kenton McHenry
  */
-public class ModelViewer extends JPanel implements Runnable, GLEventListener, KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, ActionListener
+public class ModelViewer extends AbstractModelViewer implements Runnable, GLEventListener, KeyListener, MouseListener, MouseMotionListener, MouseWheelListener, ActionListener
 {
   public Mesh mesh = new Mesh();
   public double[][] rotation_last = MatrixUtility.eye(4);
@@ -211,6 +212,18 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   public ModelViewer(String filename, boolean DISABLE_HEAVYWEIGHT)
   {
     this(filename, 0, 0, DISABLE_HEAVYWEIGHT, true);
+  }
+  
+  /**
+   * Class constructor.
+   * @param filename INI file name containing initialization values
+   * @param w width of viewer
+   * @param h height of viewer
+   * @param LOAD_DEFAULT if false the viewer will not load the default model from the INI file
+   */
+  public ModelViewer(String filename, int w, int h, boolean LOAD_DEFAULT)
+  {
+  	this(filename, w, h, false, LOAD_DEFAULT);
   }
   
   /**
@@ -3000,7 +3013,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     
     while(RUNNING){
     	if(REFRESH){
-    		if(mesh instanceof AnimatedMesh  && ((AnimatedMesh)mesh).getAnimationLoader()!=null){
+    		if(mesh instanceof AnimatedMesh && ((AnimatedMesh)mesh).getAnimationLoader()!=null){
     			((AnimatedMesh)mesh).setMesh();
     			refreshList();
     		}
