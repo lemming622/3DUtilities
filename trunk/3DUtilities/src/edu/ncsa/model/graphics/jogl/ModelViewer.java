@@ -28,7 +28,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 {
   public Mesh mesh = new Mesh();
   public double[][] rotation_last = MatrixUtility.eye(4);
-  public double[][] rotation_last_inv = null;
+  public double[][] rotation_last_inv = MatrixUtility.eye(4);
   public RigidTransformation transformation = new RigidTransformation();
   private Class Signature = null;
   private int list_id = 0;
@@ -477,7 +477,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 		}else{
 			texture = DrawOption.DISABLED;
 		}
-	  
+			  
 	  setPopupMenu();
 	  refreshList();
 	  UPDATE_CAMERA = true;		//Why do I need to update the camera (needed to display multiple modelviewers in modelbroswer)?
@@ -511,16 +511,18 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
    * Set the popup menu.
    */
   private void setPopupMenu()
-  {
+  {  	
     JPopupMenu.setDefaultLightWeightPopupEnabled(false);
     JMenu submenu1, submenu2, submenu3;
     ButtonGroup group1, group2;
     JLabel label;
     
+    //System.out.println("ok1");
     popup_menu = new JPopupMenu(); 
+    //System.out.println("ok2");
     menuitem_OPEN = new JMenuItem("Open"); menuitem_OPEN.addActionListener(this); popup_menu.add(menuitem_OPEN);
     menuitem_ADD = new JMenuItem("Add"); menuitem_ADD.addActionListener(this); popup_menu.add(menuitem_ADD);
-  
+      
     submenu1 = new JMenu("Export");
     menuitem_EXPORT_JPG = new JMenuItem("JPEG (*.jpg)"); menuitem_EXPORT_JPG.addActionListener(this); submenu1.add(menuitem_EXPORT_JPG);
     menuitem_EXPORT_OBJ = new JMenuItem("Wavefront (*.obj)"); menuitem_EXPORT_OBJ.addActionListener(this); submenu1.add(menuitem_EXPORT_OBJ);
@@ -531,8 +533,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     menuitem_EXPORT_WRL = new JMenuItem("VRML 1.0 (*.wrl)"); menuitem_EXPORT_WRL.addActionListener(this); submenu1.add(menuitem_EXPORT_WRL);
     submenu1.addSeparator();
     menuitem_EXPORT_DEPTH = new JMenuItem("Depth Map"); menuitem_EXPORT_DEPTH.addActionListener(this); submenu1.add(menuitem_EXPORT_DEPTH);
-    menuitem_EXPORT_POINTS_CAMERAS = new JMenuItem("Points/Cameras"); menuitem_EXPORT_POINTS_CAMERAS.addActionListener(this); submenu1.add(menuitem_EXPORT_POINTS_CAMERAS);
-  
+    menuitem_EXPORT_POINTS_CAMERAS = new JMenuItem("Points/Cameras"); menuitem_EXPORT_POINTS_CAMERAS.addActionListener(this); submenu1.add(menuitem_EXPORT_POINTS_CAMERAS);    
     popup_menu.add(submenu1);
     popup_menu.addSeparator();
     
@@ -589,7 +590,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
       submenu1.add(submenu2);
       submenu1.addSeparator();
     }
-    
+        
     menuitem_ORTHO = new JCheckBoxMenuItem("Ortho"); menuitem_ORTHO.addActionListener(this); submenu1.add(menuitem_ORTHO); menuitem_ORTHO.setState(ORTHO);
     menuitem_AXIS = new JCheckBoxMenuItem("Axis"); menuitem_AXIS.addActionListener(this); submenu1.add(menuitem_AXIS); menuitem_AXIS.setState(AXIS);
     menuitem_PC_AXIS = new JCheckBoxMenuItem("PC Axis"); menuitem_PC_AXIS.addActionListener(this); submenu1.add(menuitem_PC_AXIS); menuitem_PC_AXIS.setState(PC_AXIS);
@@ -640,7 +641,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     	
     	popup_menu.add(submenu1);
     }
-    
+        
     //Select menu
     submenu1 = new JMenu("Select");
     menuitem_SELECT_BOUNDING_BOX = new JMenuItem("Bounding Box"); menuitem_SELECT_BOUNDING_BOX.addActionListener(this); submenu1.add(menuitem_SELECT_BOUNDING_BOX);
@@ -694,7 +695,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     	if(submenu3 != null && n > 0) submenu2.add(submenu3);
       submenu1.add(submenu2);
     }
-    
+        
     label = new JLabel(" For"); label.setFont(new Font("Default", Font.BOLD|Font.ITALIC, 8)); submenu1.add(label);
     submenu1.addSeparator();
     group1 = new ButtonGroup();
@@ -713,7 +714,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     popup_menu.add(submenu1);
     
     popup_menu.addSeparator();
-    menuitem_QUIT = new JMenuItem("Quit"); menuitem_QUIT.addActionListener(this); popup_menu.add(menuitem_QUIT);
+    menuitem_QUIT = new JMenuItem("Quit"); menuitem_QUIT.addActionListener(this); popup_menu.add(menuitem_QUIT);  
   }
 
 	/**
@@ -1853,6 +1854,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   	Vector<Point> vertices = mesh.getVertices();
   	Vector<Color> vertex_colors = mesh.getVertexColors();
   	Vector<Face> faces = mesh.getFaces();
+  	boolean TRIANGLE_FACES = mesh.TRIANGLE_FACES;
   	
     Point norm;
     boolean TEXTURE = true;
@@ -1882,6 +1884,8 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 	  	gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE);
 	  }
 
+  	if(TRIANGLE_FACES) gl.glBegin(GL.GL_TRIANGLES);
+  	
     if(vertex_colors.size() == vertices.size()){															//Use vertex colors
       for(int i=0; i<faces.size(); i++){
         if(faces.get(i).VISIBLE && faces.get(i).v.length >= 3){
@@ -1908,7 +1912,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
             	gl.glBindTexture(gl.GL_TEXTURE_2D, tid);
             }
             
-	          gl.glBegin(GL.GL_POLYGON);
+	          if(!TRIANGLE_FACES) gl.glBegin(GL.GL_POLYGON);
 	          norm = faces.get(i).normal;
 	          gl.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
 	          
@@ -1923,10 +1927,11 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 	            gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
 	          }
 	          
-	          gl.glEnd();
+	          if(!TRIANGLE_FACES) gl.glEnd();
 	          gl.glDisable(gl.GL_TEXTURE_2D);
         	}else{																															//Not textured
-	          gl.glBegin(GL.GL_POLYGON);
+        		if(!TRIANGLE_FACES) gl.glBegin(GL.GL_POLYGON);
+        		
 	          norm = faces.get(i).normal;
 	          gl.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
 	          
@@ -1940,11 +1945,13 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
 	            gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
 	          }
 	          
-	          gl.glEnd();
+	          if(!TRIANGLE_FACES) gl.glEnd();
         	}
         }
       }
     }
+    
+    if(TRIANGLE_FACES) gl.glEnd();
     
     if(lighting == DrawOption.MATERIAL){
     	gl.glDisable(GL.GL_COLOR_MATERIAL);
@@ -2993,7 +3000,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
     
     while(RUNNING){
     	if(REFRESH){
-    		if(mesh instanceof AnimatedMesh){
+    		if(mesh instanceof AnimatedMesh  && ((AnimatedMesh)mesh).getAnimationLoader()!=null){
     			((AnimatedMesh)mesh).setMesh();
     			refreshList();
     		}
@@ -3018,7 +3025,7 @@ public class ModelViewer extends JPanel implements Runnable, GLEventListener, Ke
   public static void main(String args[])
   {
     ModelViewer mv = new ModelViewer("ModelViewer.ini", false);
-    mv.AUTO_REFRESH = true;
+    //mv.AUTO_REFRESH = true;
     
     JFrame frame = new JFrame("Model Viewer");
     frame.setSize(mv.width+9, mv.height+35);
