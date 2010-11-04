@@ -56,14 +56,14 @@ public class MeshLoader_PC extends MeshLoader
 		
 		if(Utility.exists(filename + "/cameras.txt")){
 			cameras = Camera.loadCameras(filename + "/cameras.txt");
-			Camera.printCameras(cameras);
-		}
-		
-		//Flip cameras
-		if(true){
-			for(int i=0; i<cameras.size(); i++){
-				cameras.get(i).flipAxes();
+			
+			if(true){		//Flip cameras
+				for(int i=0; i<cameras.size(); i++){
+					cameras.get(i).flipAxes();
+				}
 			}
+			
+			Camera.printCameras(cameras);
 		}
     
 		//Set the mesh
