@@ -3,6 +3,7 @@ import edu.ncsa.model.graphics.jogl.*;
 import edu.ncsa.utility.*;
 import edu.ncsa.image.*;
 import edu.ncsa.matrix.*;
+
 import java.awt.image.*;
 import java.io.*;
 import java.nio.*;
@@ -3205,6 +3206,20 @@ public class MeshAuxiliary
     }
     
     /**
+		 * Flip axes.
+		 */
+		public void flipAxes()
+		{
+			Pair<double[][],double[][]> tmpp;
+			tmpp = flipAxes(K, RT); K = tmpp.first; RT = tmpp.second;
+			
+			//Update other matrices
+		  RTi = GMatrixUtility.inverse(RT);
+		  M = GMatrixUtility.transform(K, RT);
+		  Mi = GMatrixUtility.inverse(M);
+		}
+
+		/**
      * Orient a camera towards a group of points.
      * @param K the internal parameter matrix of a camera
      * @param RT the external parameter matrix of a camera
@@ -3249,6 +3264,40 @@ public class MeshAuxiliary
     		//Why do we need to do this?
     		K[0][0] = -K[0][0];
     	}
+    	
+    	return new Pair<double[][],double[][]>(K,RT);
+    }
+    
+    /**
+     * Flip axes.
+     * @param K the internal parameter matrix of a camera
+     * @param RT the external parameter matrix of a camera
+     * @return the possibly modified camera matrices
+     */
+    public static Pair<double[][],double[][]> flipAxes(double[][] K, double[][] RT)
+    {
+    	double[][] RTi = GMatrixUtility.inverse(RT);
+    	Point center = Point.transform(RTi, new Point(0, 0, 0));
+    	
+    	Point forward = Point.transform(RTi, new Point(0, 0, 1));    	
+  		forward.minusEquals(center);
+  		forward.normalize();
+  		
+  		Point up = Point.transform(RTi, new Point(0, 1, 0));
+  		up.minusEquals(center);
+  		up.normalize();
+  		
+  		Point right = Point.cross(forward, up);
+  		right.normalize();
+
+  		RT = MatrixUtility.rotateCamera(forward.toArray(), up.toArray(), right.toArray());
+			center = Point.transform(RT, center);
+  		RT[0][3] = -center.x;
+  		RT[1][3] = -center.y;
+  		RT[2][3] = -center.z;
+  		
+  		//Why do we need to do this?
+  		K[0][0] = -K[0][0];
     	
     	return new Pair<double[][],double[][]>(K,RT);
     }
