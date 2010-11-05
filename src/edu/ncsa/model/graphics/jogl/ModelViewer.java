@@ -286,7 +286,7 @@ public class ModelViewer extends AbstractModelViewer implements Runnable, GLEven
     canvas.setFocusable(true);
     super.add(canvas);
     
-    setPopupMenu();
+    setPopupMenuLater();
     
     Thread t1 = new Thread(this);
     t1.start();
@@ -491,7 +491,7 @@ public class ModelViewer extends AbstractModelViewer implements Runnable, GLEven
 			texture = DrawOption.DISABLED;
 		}
 			  
-	  setPopupMenu();
+	  setPopupMenuLater();
 	  refreshList();
 	  UPDATE_CAMERA = true;		//Why do I need to update the camera (needed to display multiple modelviewers in modelbroswer)?
 	  REFRESH = true;
@@ -524,15 +524,13 @@ public class ModelViewer extends AbstractModelViewer implements Runnable, GLEven
    * Set the popup menu.
    */
   private void setPopupMenu()
-  {  	
+  {
     JPopupMenu.setDefaultLightWeightPopupEnabled(false);
     JMenu submenu1, submenu2, submenu3;
     ButtonGroup group1, group2;
     JLabel label;
     
-    //System.out.println("ok1");
     popup_menu = new JPopupMenu(); 
-    //System.out.println("ok2");
     menuitem_OPEN = new JMenuItem("Open"); menuitem_OPEN.addActionListener(this); popup_menu.add(menuitem_OPEN);
     menuitem_ADD = new JMenuItem("Add"); menuitem_ADD.addActionListener(this); popup_menu.add(menuitem_ADD);
       
@@ -731,6 +729,18 @@ public class ModelViewer extends AbstractModelViewer implements Runnable, GLEven
   }
 
 	/**
+   * Set the popup menu later.
+   */
+  private void setPopupMenuLater()
+  {
+  	SwingUtilities.invokeLater(new Runnable(){
+  		public void run(){
+  			setPopupMenu();
+  		}
+  	});
+  }
+  
+	/**
    * Load model into our mesh structure.
    * @param filename the absolute name of the file
    * @param progressCallBack the callback handling progress updates
@@ -788,7 +798,7 @@ public class ModelViewer extends AbstractModelViewer implements Runnable, GLEven
       
       if(ADJUST) added_meshes.lastElement().center(0.8f*((width<height)?width:height)/2.0f);
       
-      setPopupMenu();
+      setPopupMenuLater();
       refresh(true);
       System.out.println("\t[Loaded in " + dt/1000.0 + "s]");
     }
@@ -852,7 +862,7 @@ public class ModelViewer extends AbstractModelViewer implements Runnable, GLEven
     	mesh.save(filename);
     	
     	//Update the viewer
-      setPopupMenu();
+      setPopupMenuLater();
       refreshList();
       refresh(true);
       
