@@ -2974,7 +2974,7 @@ public class ModelViewer extends AbstractModelViewer implements KeyListener, Mou
   public static void main(String args[])
   {
     ModelViewer mv = new ModelViewer("ModelViewer.ini");
-    mv.AUTO_REFRESH = true;
+    //mv.AUTO_REFRESH = true;
     
     JFrame frame = new JFrame("Model Viewer");
     frame.setSize(mv.width+9, mv.height+35);

@@ -2920,7 +2920,8 @@ public class ModelViewer extends AbstractModelViewer implements Runnable, GLEven
   
   public void reshape(GLAutoDrawable gLDrawable, int x, int y, int width, int height) {}
   public void displayChanged(GLAutoDrawable gLDrawable, boolean modeChanged, boolean deviceChanged) {}
-  public void keyReleased(KeyEvent e) {}
+  public void dispose(GLAutoDrawable gLDrawable) {}
+	public void keyReleased(KeyEvent e) {}
   public void keyTyped(KeyEvent e) {}
   public void mouseExited(MouseEvent e) {}
   public void mouseMoved(MouseEvent e) {}
@@ -2972,7 +2973,7 @@ public class ModelViewer extends AbstractModelViewer implements Runnable, GLEven
   public static void main(String args[])
   {
     ModelViewer mv = new ModelViewer("ModelViewer.ini", false);
-    mv.AUTO_REFRESH = true;
+    //mv.AUTO_REFRESH = true;
     
     JFrame frame = new JFrame("Model Viewer");
     frame.setSize(mv.width+9, mv.height+35);
@@ -2980,9 +2981,4 @@ public class ModelViewer extends AbstractModelViewer implements Runnable, GLEven
     frame.add(mv);
     frame.setVisible(true);
   }
-
-	public void dispose(GLAutoDrawable arg0) {
-		// TODO Auto-generated method stub
-		
-	}
 }
