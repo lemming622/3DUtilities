@@ -1906,13 +1906,11 @@ public class ModelViewer extends AbstractModelViewer implements Runnable, GLEven
 	  }else if(texture == DrawOption.MODULATE){
 	  	gl.glTexEnvi(gl.GL_TEXTURE_ENV, gl.GL_TEXTURE_ENV_MODE, gl.GL_MODULATE);
 	  }
-
-  	if(TRIANGLE_FACES) gl.glBegin(GL.GL_TRIANGLES);
-  	
+      	
     if(vertex_colors.size() == vertices.size()){															//Use vertex colors
       for(int i=0; i<faces.size(); i++){
         if(faces.get(i).VISIBLE && faces.get(i).v.length >= 3){
-          gl.glBegin(GL.GL_POLYGON);
+        	gl.glBegin(GL.GL_POLYGON);
           norm = faces.get(i).normal;
           gl.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
         
@@ -1935,7 +1933,7 @@ public class ModelViewer extends AbstractModelViewer implements Runnable, GLEven
             	gl.glBindTexture(gl.GL_TEXTURE_2D, tid);
             }
             
-	          if(!TRIANGLE_FACES) gl.glBegin(GL.GL_POLYGON);
+	          gl.glBegin(GL.GL_POLYGON);
 	          norm = faces.get(i).normal;
 	          gl.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
 	          
@@ -1950,11 +1948,10 @@ public class ModelViewer extends AbstractModelViewer implements Runnable, GLEven
 	            gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
 	          }
 	          
-	          if(!TRIANGLE_FACES) gl.glEnd();
+	          gl.glEnd();
 	          gl.glDisable(gl.GL_TEXTURE_2D);
         	}else{																															//Not textured
-        		if(!TRIANGLE_FACES) gl.glBegin(GL.GL_POLYGON);
-        		
+        		gl.glBegin(GL.GL_POLYGON);
 	          norm = faces.get(i).normal;
 	          gl.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
 	          
@@ -1968,14 +1965,12 @@ public class ModelViewer extends AbstractModelViewer implements Runnable, GLEven
 	            gl.glVertex3f((float)vertices.get(faces.get(i).v[j]).x, (float)vertices.get(faces.get(i).v[j]).y, (float)vertices.get(faces.get(i).v[j]).z);
 	          }
 	          
-	          if(!TRIANGLE_FACES) gl.glEnd();
+	          gl.glEnd();
         	}
         }
       }
     }
-    
-    if(TRIANGLE_FACES) gl.glEnd();
-    
+        
     if(lighting == DrawOption.MATERIAL){
     	gl.glDisable(GL.GL_COLOR_MATERIAL);
     }
