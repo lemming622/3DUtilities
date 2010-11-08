@@ -91,6 +91,7 @@ public class ModelViewer extends AbstractModelViewer implements Runnable, GLEven
   private JMenuItem menuitem_EXPORT_WRL;
   private JMenuItem menuitem_EXPORT_DEPTH;
   private JMenuItem menuitem_EXPORT_POINTS_CAMERAS;
+  private JMenuItem menuitem_REFRESH;
   private JMenuItem menuitem_QUIT;
   private JCheckBoxMenuItem menuitem_ORTHO;
   private JCheckBoxMenuItem menuitem_AXIS;
@@ -546,6 +547,7 @@ public class ModelViewer extends AbstractModelViewer implements Runnable, GLEven
     menuitem_EXPORT_DEPTH = new JMenuItem("Depth Map"); menuitem_EXPORT_DEPTH.addActionListener(this); submenu1.add(menuitem_EXPORT_DEPTH);
     menuitem_EXPORT_POINTS_CAMERAS = new JMenuItem("Points/Cameras"); menuitem_EXPORT_POINTS_CAMERAS.addActionListener(this); submenu1.add(menuitem_EXPORT_POINTS_CAMERAS);    
     popup_menu.add(submenu1);
+    menuitem_REFRESH = new JMenuItem("Refresh"); menuitem_REFRESH.addActionListener(this); popup_menu.add(menuitem_REFRESH);
     popup_menu.addSeparator();
     
     //View menu
@@ -1589,13 +1591,17 @@ public class ModelViewer extends AbstractModelViewer implements Runnable, GLEven
   private void bindTextures(GL gl, Mesh mesh, boolean FORCE)
   {
   	Vector<Texture> textures;
-  	
+  	int[] buffer = new int[1];
+
   	if(mesh.UNBOUND_TEXTURES || FORCE){
   		textures = mesh.getTextures();
   		
   		for(int i=0; i<textures.size(); i++){
   			if(textures.get(i).tid == -1 || FORCE){
+  				//gl.glGenTextures(1, buffer, 0);  				
+  				//textures.get(i).tid = buffer[0];
   				textures.get(i).tid = i;
+  				
 		  	  gl.glBindTexture(gl.GL_TEXTURE_2D, textures.get(i).tid);
 		  	  gl.glPixelStorei(gl.GL_UNPACK_ALIGNMENT, 1);
 		  	  gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_WRAP_S, gl.GL_REPEAT);
@@ -1932,7 +1938,7 @@ public class ModelViewer extends AbstractModelViewer implements Runnable, GLEven
             	tid = faces.get(i).material.tid;
             	gl.glBindTexture(gl.GL_TEXTURE_2D, tid);
             }
-            
+                        
 	          gl.glBegin(GL.GL_POLYGON);
 	          norm = faces.get(i).normal;
 	          gl.glNormal3f((float)norm.x, (float)norm.y, (float)norm.z);
@@ -2738,6 +2744,9 @@ public class ModelViewer extends AbstractModelViewer implements Runnable, GLEven
       save(export_path + mesh.getMetaData("Name") + ".pgm");
     }else if(source == menuitem_EXPORT_POINTS_CAMERAS){
       save(export_path + mesh.getMetaData("Name") + ".pc");
+    }else if(source == menuitem_REFRESH){
+    	refreshList();
+    	REFRESH = true;
     }else if(source == menuitem_VIEW_GROUPS_ALL){
     	for(int i=0; i<menuitem_VIEW_GROUPS.size(); i++){
     		menuitem_VIEW_GROUPS.get(i).setState(!menuitem_VIEW_GROUPS.get(i).getState());
