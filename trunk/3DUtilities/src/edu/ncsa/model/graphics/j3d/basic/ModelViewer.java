@@ -1,4 +1,4 @@
-package edu.ncsa.model.graphics.j3d;
+package edu.ncsa.model.graphics.j3d.basic;
 import edu.ncsa.model.*;
 import edu.ncsa.model.MeshAuxiliary.*;
 import edu.ncsa.model.MeshAuxiliary.Point;
