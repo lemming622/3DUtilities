@@ -116,6 +116,7 @@
 	<target name="javadocs" description="Make javadocs">
 		<mkdir dir="${javadocs}"/>
 		<javadoc sourcepath="src" destdir="${javadocs}" packagenames="edu.ncsa.model.*" classpathref="classpath"/>
+		<zip basedir="${javadocs}" destfile="build/javadocs.zip"/>
 	</target>
 	
 	<target name="clean_tmp" description="Deletes tmp folder">

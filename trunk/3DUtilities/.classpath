@@ -58,11 +58,27 @@
 	<classpathentry kind="lib" path="lib/j3d/xj3d-1.0/xj3d-xml-util.jar"/>
 	<classpathentry kind="lib" path="lib/j3d/xj3d-1.0/xj3d-xml.jar"/>
 	<classpathentry kind="lib" path="lib/misc/NonlinearOptimization.jar"/>
-	<classpathentry kind="lib" path="lib/ncsa/ImageUtilities.jar"/>
-	<classpathentry kind="lib" path="lib/ncsa/MatrixUtilities.jar"/>
-	<classpathentry kind="lib" path="lib/ncsa/Utilities.jar"/>
+	<classpathentry kind="lib" path="lib/ncsa/ImageUtilities.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/3DUtilities/doc/ImageUtilities.zip!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/ncsa/MatrixUtilities.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/3DUtilities/doc/MatrixUtilities.zip!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/ncsa/Utilities.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/3DUtilities/doc/Utilities.zip!/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="lib" path="lib/misc/jzlib.jar"/>
-	<classpathentry kind="lib" path="lib/ncsa/MLUtilities.jar"/>
+	<classpathentry kind="lib" path="lib/ncsa/MLUtilities.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:platform:/resource/3DUtilities/doc/MLUtilities.zip!/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="lib" path="lib/ncsa/3DUtilities_Loaders.jar"/>
 	<classpathentry kind="lib" path="lib/lwjgl-2.4.2/jar/AppleJavaExtensions.jar"/>
 	<classpathentry kind="lib" path="lib/lwjgl-2.4.2/jar/jinput.jar"/>
