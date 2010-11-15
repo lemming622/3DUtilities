@@ -385,7 +385,8 @@ public class ModelViewer extends AbstractModelViewer implements KeyListener, Mou
         mesh.center(0.8f*((width<height)?width:height)/2.0f);
         refreshList();
       }
-      
+            
+      INITIALIZED = false;
       UPDATE_CAMERA = true;
       refresh(true);
     }
