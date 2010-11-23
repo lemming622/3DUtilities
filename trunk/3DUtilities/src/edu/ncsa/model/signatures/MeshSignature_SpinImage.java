@@ -106,8 +106,8 @@ public class MeshSignature_SpinImage extends MeshSignature
     }
     
     //Cluster spin images
-    Vector<Vector<double[]>> CX = KMeans.cluster(1, spin_images, 5);
-    KMeans.getData(CX, signature, null, null);
+    Vector<Vector<double[]>> clusters = KMeans.cluster(spin_images, 1, 5);
+    signature = KMeans.getCenters(clusters);
     
     if(false){	//View results
 	    ImageViewer.show(spin_images, bins, bins, "Spin Images [" + mesh.getMetaData("Name") + "]");
