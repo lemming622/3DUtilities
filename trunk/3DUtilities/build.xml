@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project name="3DUtilities" default="archive">
 	<property name="classes" location="build/classes"/>
-	<property name="tmp" location="build/tmp"/>
 	<property name="javadocs" location="build/javadocs"/>
+	<property name="tmp" location="build/tmp"/>
+	<property name="tmp_core" location="${tmp}/core_archive"/>
+	<property name="tmp_lite" location="${tmp}/modelviewer_lite"/>
+	<property name="tmp_zip" location="${tmp}/zip"/>
 
 	<path id="classpath">
 		<fileset dir="lib">
@@ -21,20 +24,20 @@
 	</target>	
 	
 	<target name="core_archive" depends="compile" description="Archive the core code needed for the 3D utilities">
-		<mkdir dir="${tmp}"/>
-		<copy todir="${tmp}">
+		<mkdir dir="${tmp_core}"/>
+		<copy todir="${tmp_core}">
 			<fileset dir="${classes}">
 				<exclude name="**/Mesh.class"/>
 				<include name="**/*.class"/>
 				<include name="**/AnimatedMesh.class"/>
 			</fileset>
 		</copy>
-		<jar basedir="${tmp}" destfile="build/3DUtilities_Core.jar"/>
+		<jar basedir="${tmp_core}" destfile="build/3DUtilities_Core.jar"/>
 	</target>
 	
 	<target name="modelviewer_lite" depends="compile" description="Archive the code needed for a lite version of the model viewer">
-		<mkdir dir="${tmp}"/>
-		<copy todir="${tmp}">
+		<mkdir dir="${tmp_lite}"/>
+		<copy todir="${tmp_lite}">
 			<fileset dir="${classes}">
 				<include name="**/ModelViewer.class"/>
 				<include name="**/ModelViewerApplet.class"/>
@@ -44,12 +47,12 @@
 				<include name="**/MeshLoader_OBJ.class"/>
 			</fileset>
 		</copy>
-		<unjar src="lib/ncsa/ImageUtilities.jar" dest="${tmp}"/>
-		<unjar src="lib/ncsa/MatrixUtilities.jar" dest="${tmp}"/>
-		<unjar src="lib/ncsa/Utilities.jar" dest="${tmp}"/>
-		<unjar src="lib/jogl-1.1.1a/jogl.jar" dest="${tmp}"/>
-		<unjar src="lib/jogl-1.1.1a/gluegen-rt.jar" dest="${tmp}"/>
-		<jar basedir="${tmp}" destfile="build/ModelViewer_Lite.jar"/>
+		<unjar src="lib/ncsa/ImageUtilities.jar" dest="${tmp_lite}"/>
+		<unjar src="lib/ncsa/MatrixUtilities.jar" dest="${tmp_lite}"/>
+		<unjar src="lib/ncsa/Utilities.jar" dest="${tmp_lite}"/>
+		<unjar src="lib/jogl-1.1.1a/jogl.jar" dest="${tmp_lite}"/>
+		<unjar src="lib/jogl-1.1.1a/gluegen-rt.jar" dest="${tmp_lite}"/>
+		<jar basedir="${tmp_lite}" destfile="build/ModelViewer_Lite.jar"/>
 	</target>
 	
 	<target name="modelviewer_lite_signed" depends="modelviewer_lite" description="Sign the code needed for a lite version of the model viewer">
@@ -64,58 +67,59 @@
 	</target>
 	
 	<target name="zip" depends="archive,javadocs,modelviewer_lite" description="Build a zip file containing the installation">
-		<mkdir dir="${tmp}"/>	
-		<copy file="build/3DUtilities.jar" todir="${tmp}"/>
-		<copy file="build/ModelViewer_Lite.jar" todir="${tmp}"/>	
-		<copy file="polyglotDomain_OBJ.txt" todir="${tmp}"/>
-		<copy file="ModelViewer.php" todir="${tmp}"/>
-		<copy todir="${tmp}/logos">
+		<mkdir dir="${tmp_zip}"/>	
+		<copy file="build/3DUtilities.jar" todir="${tmp_zip}"/>
+		<copy file="build/ModelViewer_Lite.jar" todir="${tmp_zip}"/>	
+		<copy file="polyglotDomain_OBJ.txt" todir="${tmp_zip}"/>
+		<copy file="ModelViewer.php" todir="${tmp_zip}"/>
+		<copy todir="${tmp_zip}/logos">
 			<fileset dir="logos"/>
 		</copy>
-		<copy todir="${tmp}/lib">
+		<copy todir="${tmp_zip}/lib">
 			<fileset dir="lib"/>
 		</copy>
-		<copy todir="${tmp}/javadocs">
+		<copy todir="${tmp_zip}/javadocs">
 			<fileset dir="${javadocs}"/>
 		</copy>
-		<mkdir dir="${tmp}/data"/>
-		<mkdir dir="${tmp}/data/Models"/>
-		<mkdir dir="${tmp}/data/MetaData"/>
-		<mkdir dir="${tmp}/data/Exports"/>
+		<mkdir dir="${tmp_zip}/data"/>
+		<mkdir dir="${tmp_zip}/data/Models"/>
+		<mkdir dir="${tmp_zip}/data/MetaData"/>
+		<mkdir dir="${tmp_zip}/data/Exports"/>
 						
-		<echo file="${tmp}/ModelViewer.ini" append="false">LoadPath=data/Models${line.separator}</echo>
-		<echo file="${tmp}/ModelViewer.ini" append="true">ExportPath=data/Exports${line.separator}</echo>
-		<echo file="${tmp}/ModelViewer.ini" append="true">MetaDataPath=data/MetaData${line.separator}</echo>
-		<echo file="${tmp}/ModelViewer.ini" append="true">Adjust=true${line.separator}</echo>
-		<echo file="${tmp}/ModelViewer.ini" append="true">Signature=edu.ncsa.model.signatures.MeshSignature_LightField${line.separator}</echo>
-		<echo file="${tmp}/ModelViewer.ini" append="true">RebuildSignatures=true${line.separator}</echo>
-		<echo file="${tmp}/ModelViewer.ini" append="true">DefaultModel=logos/ncsa_horizontal_3D.dae${line.separator}</echo>
-		<echo file="${tmp}/ModelViewer.ini" append="true">Ortho=true${line.separator}</echo>
-		<echo file="${tmp}/ModelViewer.ini" append="true">Axis=true${line.separator}</echo>
-		<echo file="${tmp}/ModelViewer.ini" append="true">Points=false${line.separator}</echo>
-		<echo file="${tmp}/ModelViewer.ini" append="true">Transparent=false${line.separator}</echo>
-		<echo file="${tmp}/ModelViewer.ini" append="true">Shaded=true${line.separator}</echo>
-		<echo file="${tmp}/ModelViewer.ini" append="true">AutoRefresh=false${line.separator}</echo>
+		<echo file="${tmp_zip}/ModelViewer.ini" append="false">LoadPath=data/Models${line.separator}</echo>
+		<echo file="${tmp_zip}/ModelViewer.ini" append="true">ExportPath=data/Exports${line.separator}</echo>
+		<echo file="${tmp_zip}/ModelViewer.ini" append="true">MetaDataPath=data/MetaData${line.separator}</echo>
+		<echo file="${tmp_zip}/ModelViewer.ini" append="true">Adjust=true${line.separator}</echo>
+		<echo file="${tmp_zip}/ModelViewer.ini" append="true">Signature=edu.ncsa.model.signatures.MeshSignature_LightField${line.separator}</echo>
+		<echo file="${tmp_zip}/ModelViewer.ini" append="true">RebuildSignatures=true${line.separator}</echo>
+		<echo file="${tmp_zip}/ModelViewer.ini" append="true">DefaultModel=logos/ncsa_horizontal_3D.dae${line.separator}</echo>
+		<echo file="${tmp_zip}/ModelViewer.ini" append="true">Ortho=true${line.separator}</echo>
+		<echo file="${tmp_zip}/ModelViewer.ini" append="true">Axis=true${line.separator}</echo>
+		<echo file="${tmp_zip}/ModelViewer.ini" append="true">Points=false${line.separator}</echo>
+		<echo file="${tmp_zip}/ModelViewer.ini" append="true">Transparent=false${line.separator}</echo>
+		<echo file="${tmp_zip}/ModelViewer.ini" append="true">Shaded=true${line.separator}</echo>
+		<echo file="${tmp_zip}/ModelViewer.ini" append="true">AutoRefresh=false${line.separator}</echo>
 		
-		<echo file="${tmp}/ModelBrowser.bat">java -cp "%~dp03DUtilities.jar;%~dp0lib/ncsa/3DUtilities_Loaders.jar;%~dp0lib/ncsa/ImageUtilities.jar;%~dp0lib/ncsa/MatrixUtilities.jar;%~dp0lib/ncsa/Utilities.jar;%~dp0lib/jogl-1.1.1a/jogl.jar;%~dp0lib/jogl-1.1.1a/gluegen-rt.jar;%~dp0lib/jdom-1.1/jdom.jar;%~dp0lib/jama-1.0.2/Jama-1.0.2.jar;%~dp0lib/j3d/xj3D-1.0/xj3d-all.jar;%~dp0lib/j3d/j3d-1.5.2/j3dcore.jar;%~dp0lib/j3d/j3d-1.5.2/j3dutils.jar;%~dp0lib/ncsa/portfolio/portfolio.jar" -Djava.library.path="%~dp0lib/jogl-1.1.1a/windows-i586;%~dp0lib/loaders/j3d-1.5.2" -Xmx1g edu.ncsa.model.ModelBrowser</echo>
-		<echo file="${tmp}/ModelBrowser.sh">java -cp 3DUtilities.jar:lib/ncsa/3DUtilities_Loaders.jar:lib/ncsa/ImageUtilities.jar:lib/ncsa/MatrixUtilities.jar:lib/ncsa/Utilities.jar:lib/jogl-1.1.1a/jogl.jar:lib/jogl-1.1.1a/gluegen-rt.jar:lib/jdom-1.1/jdom.jar:lib/jama-1.0.2/Jama-1.0.2.jar:lib/j3d/j3d-1.5.2/vecmath.jar:lib/misc/NonlinearOptimization.jar:lib/j3d/xj3D-1.0/xj3d-all.jar:lib/j3d/j3d-1.5.2/j3dcore.jar:lib/j3d/j3d-1.5.2/j3dutils.jar:lib/ncsa/portfolio/portfolio.jar -Djava.library.path=lib/jogl-1.1.1a/linux-i586:lib/loaders/j3d-1.5.2 -Xmx1g edu.ncsa.model.ModelBrowser</echo>
-		<echo file="${tmp}/ModelBrowser.ini" append="false">LoadPath=data/Models${line.separator}</echo>
-		<echo file="${tmp}/ModelBrowser.ini" append="true">MetaDataPath=data/MetaData${line.separator}</echo>
-		<echo file="${tmp}/ModelBrowser.ini" append="true">Polyglot=http://teeve3.ncsa.uiuc.edu${line.separator}</echo>
-		<echo file="${tmp}/ModelBrowser.ini" append="true">ConvertableList=polyglotDomain_OBJ.txt${line.separator}</echo>
-		<echo file="${tmp}/ModelBrowser.ini" append="true">TransparentPanels=false${line.separator}</echo>
-		<echo file="${tmp}/ModelBrowser.ini" append="true">WiiMote=false${line.separator}</echo>
-		<echo file="${tmp}/ModelBrowser.ini" append="true">RebuildThumbs=false${line.separator}</echo>
+		<echo file="${tmp_zip}/ModelBrowser.bat">java -cp "%~dp03DUtilities.jar;%~dp0lib/ncsa/3DUtilities_Loaders.jar;%~dp0lib/ncsa/ImageUtilities.jar;%~dp0lib/ncsa/MatrixUtilities.jar;%~dp0lib/ncsa/Utilities.jar;%~dp0lib/jogl-1.1.1a/jogl.jar;%~dp0lib/jogl-1.1.1a/gluegen-rt.jar;%~dp0lib/jdom-1.1/jdom.jar;%~dp0lib/jama-1.0.2/Jama-1.0.2.jar;%~dp0lib/j3d/xj3D-1.0/xj3d-all.jar;%~dp0lib/j3d/j3d-1.5.2/j3dcore.jar;%~dp0lib/j3d/j3d-1.5.2/j3dutils.jar;%~dp0lib/ncsa/portfolio/portfolio.jar" -Djava.library.path="%~dp0lib/jogl-1.1.1a/windows-i586;%~dp0lib/loaders/j3d-1.5.2" -Xmx1g edu.ncsa.model.ModelBrowser</echo>
+		<echo file="${tmp_zip}/ModelBrowser.sh">java -cp 3DUtilities.jar:lib/ncsa/3DUtilities_Loaders.jar:lib/ncsa/ImageUtilities.jar:lib/ncsa/MatrixUtilities.jar:lib/ncsa/Utilities.jar:lib/jogl-1.1.1a/jogl.jar:lib/jogl-1.1.1a/gluegen-rt.jar:lib/jdom-1.1/jdom.jar:lib/jama-1.0.2/Jama-1.0.2.jar:lib/j3d/j3d-1.5.2/vecmath.jar:lib/misc/NonlinearOptimization.jar:lib/j3d/xj3D-1.0/xj3d-all.jar:lib/j3d/j3d-1.5.2/j3dcore.jar:lib/j3d/j3d-1.5.2/j3dutils.jar:lib/ncsa/portfolio/portfolio.jar -Djava.library.path=lib/jogl-1.1.1a/linux-i586:lib/loaders/j3d-1.5.2 -Xmx1g edu.ncsa.model.ModelBrowser</echo>
+		<echo file="${tmp_zip}/ModelBrowser.ini" append="false">LoadPath=data/Models${line.separator}</echo>
+		<echo file="${tmp_zip}/ModelBrowser.ini" append="true">MetaDataPath=data/MetaData${line.separator}</echo>
+		<echo file="${tmp_zip}/ModelBrowser.ini" append="true">Polyglot=http://teeve3.ncsa.uiuc.edu${line.separator}</echo>
+		<echo file="${tmp_zip}/ModelBrowser.ini" append="true">ConvertableList=polyglotDomain_OBJ.txt${line.separator}</echo>
+		<echo file="${tmp_zip}/ModelBrowser.ini" append="true">TransparentPanels=false${line.separator}</echo>
+		<echo file="${tmp_zip}/ModelBrowser.ini" append="true">WiiMote=false${line.separator}</echo>
+		<echo file="${tmp_zip}/ModelBrowser.ini" append="true">RebuildThumbs=false${line.separator}</echo>
 		
-		<echo file="${tmp}/ModelConvert.bat">java -cp "%~dp03DUtilities.jar;%~dp0lib/ncsa/3DUtilities_Loaders.jar;%~dp0lib/jogl-1.1.1/jogl.jar;%~dp0lib/jogl-1.1.1/gluegen-rt.jar;%~dp0lib/jdom-1.1/jdom.jar;%~dp0lib/jama-1.0.2/Jama-1.0.2.jar;%~dp0lib/j3d/xj3D-1.0/xj3d-all.jar;%~dp0lib/j3d/j3d-1.5.2/j3dcore.jar;%~dp0lib/j3d/j3d-1.5.2/j3dutils.jar;%~dp0lib/ncsa/portfolio/portfolio.jar" -Xmx1g edu.ncsa.model.ModelConverter %1 %2</echo>
-		<echo file="${tmp}/ModelConvert.sh">java -cp 3DUtilities.jar:lib/ncsa/3DUtilities_Loaders.jar:lib/jogl-1.1.1/jogl.jar:lib/jogl-1.1.1/gluegen-rt.jar:lib/jdom-1.1/jdom.jar:lib/jama-1.0.2/Jama-1.0.2.jar:lib/j3d/xj3D-1.0/xj3d-all.jar:lib/j3d/j3d-1.5.2/j3dcore.jar:lib/j3d/j3d-1.5.2/j3dutils.jar:lib/ncsa/portfolio/portfolio.jar -Xmx1g edu.ncsa.model.ModelConverter $1 $2</echo>
+		<echo file="${tmp_zip}/ModelConvert.bat">java -cp "%~dp03DUtilities.jar;%~dp0lib/ncsa/3DUtilities_Loaders.jar;%~dp0lib/jogl-1.1.1/jogl.jar;%~dp0lib/jogl-1.1.1/gluegen-rt.jar;%~dp0lib/jdom-1.1/jdom.jar;%~dp0lib/jama-1.0.2/Jama-1.0.2.jar;%~dp0lib/j3d/xj3D-1.0/xj3d-all.jar;%~dp0lib/j3d/j3d-1.5.2/j3dcore.jar;%~dp0lib/j3d/j3d-1.5.2/j3dutils.jar;%~dp0lib/ncsa/portfolio/portfolio.jar" -Xmx1g edu.ncsa.model.ModelConverter %1 %2</echo>
+		<echo file="${tmp_zip}/ModelConvert.sh">java -cp 3DUtilities.jar:lib/ncsa/3DUtilities_Loaders.jar:lib/jogl-1.1.1/jogl.jar:lib/jogl-1.1.1/gluegen-rt.jar:lib/jdom-1.1/jdom.jar:lib/jama-1.0.2/Jama-1.0.2.jar:lib/j3d/xj3D-1.0/xj3d-all.jar:lib/j3d/j3d-1.5.2/j3dcore.jar:lib/j3d/j3d-1.5.2/j3dutils.jar:lib/ncsa/portfolio/portfolio.jar -Xmx1g edu.ncsa.model.ModelConverter $1 $2</echo>
 
-		<echo file="${tmp}/AutoUpdate.bat">java -cp "%~dp0lib/ncsa/Utilities.jar" edu.ncsa.utility.AutoUpdate</echo>
-		<echo file="${tmp}/AutoUpdate.sh">java -cp lib/ncsa/Utilities.jar edu.ncsa.utility.AutoUpdate</echo>
-		<echo file="${tmp}/AutoUpdate.ini" append="false">!ini, txt${line.separator}</echo>
-		<echo file="${tmp}/AutoUpdate.ini" append="true">http://isda.ncsa.uiuc.edu/~kmchenry/tmp/3DUtilities.zip</echo>
+		<echo file="${tmp_zip}/AutoUpdate.bat">java -cp "%~dp0lib/ncsa/Utilities.jar" edu.ncsa.utility.AutoUpdate</echo>
+		<echo file="${tmp_zip}/AutoUpdate.sh">java -cp lib/ncsa/Utilities.jar edu.ncsa.utility.AutoUpdate</echo>
+		<echo file="${tmp_zip}/AutoUpdate.ini" append="false">!ini, txt${line.separator}</echo>
+		<echo file="${tmp_zip}/AutoUpdate.ini" append="true">http://isda.ncsa.uiuc.edu/~kmchenry/tmp/3DUtilities.zip</echo>
 		
-		<zip basedir="${tmp}" destfile="build/3DUtilities.zip"/>
+		<!-- <zip basedir="src" destfile="${tmp_zip}/src.zip"/> -->
+		<zip basedir="${tmp_zip}" destfile="build/3DUtilities.zip"/>
 	</target>
 	
 	<target name="javadocs" description="Make javadocs">
