@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="3DUtilities" default="archive">
+	<property name="classes" location="build/classes"/>
+	<property name="javadocs" location="build/javadocs"/>
+
+	<path id="classpath">
+		<fileset dir="lib">
+			<exclude name="**/jogl-2.0-beta10/*.jar"/>
+			<include name="**/*.jar"/>
+		</fileset>
+	</path>
+	
+	<target name="compile" description="Compiles the Java source code">
+		<mkdir dir="${classes}"/>
+		<javac srcdir="src" destdir="${classes}" classpathref="classpath" excludes="edu/ncsa/model/graphics/jogl2/**"/>
+	</target>
+	
+	<target name="archive" depends="compile" description="Creates the JAR file">
+		<jar basedir="${classes}" destfile="build/3DUtilities.jar"/>
+	</target>	
+	
+	<target name="javadocs" description="Make javadocs">
+		<mkdir dir="${javadocs}"/>
+		<javadoc sourcepath="src" destdir="${javadocs}" packagenames="edu.ncsa.model.*" classpathref="classpath"/>
+	</target>
+	
+	<target name="clean" description="Deletes all generated files">
+		<delete dir="build"/>
+	</target>
+</project>
