@@ -56,7 +56,8 @@
 	</target>
 	
 	<target name="modelviewer_lite_signed" depends="modelviewer_lite" description="Sign the code needed for a lite version of the model viewer">
-		<signjar jar="build/ModelViewer_Lite.jar" signedjar="build/ModelViewer_Lite-signed.jar" alias="mykey" storepass="isdapass"/>
+		<input message="keystore password:" addproperty="storepass"/>
+		<signjar jar="build/ModelViewer_Lite.jar" signedjar="build/ModelViewer_Lite-signed.jar" alias="mykey" storepass="${storepass}"/>
 	</target>
 	
 	<target name="installer" depends="archive,javadocs,modelviewer_lite" description="Build an installer for this project">
