@@ -5,6 +5,8 @@ import edu.ncsa.model.loaders.*;
 import edu.ncsa.image.*;
 import edu.ncsa.matrix.*;
 import edu.ncsa.utility.*;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.*;
 
 /**
@@ -263,8 +265,17 @@ public class Mesh
 		Mesh mesh = null;
 		
 		if(loaders != null){
+			byte[] header = new byte[100];
+			try {
+				FileInputStream fis = new FileInputStream(filename);
+				fis.read(header);
+				fis.close();
+			} catch (IOException e) {
+				System.err.println("Error reading file " + filename);
+				e.printStackTrace();
+			}
 	  	for(int i=0; i<loaders.size(); i++){
-	  		if(filename.contains("." + loaders.get(i).type())){
+	  		if(loaders.get(i).checkMagic(header) || filename.contains("." + loaders.get(i).type())){
 	  			loaders.get(i).setProgressCallBack(progressCallBack);
 	  			mesh = loaders.get(i).load(filename);
 	  			

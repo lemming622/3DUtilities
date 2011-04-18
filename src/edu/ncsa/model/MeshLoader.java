@@ -25,6 +25,11 @@ public abstract class MeshLoader
 		this.progressCallBack = progressCallBack;
 	}
 	
+	public boolean checkMagic(byte[] header)
+	{
+		return false;
+	}
+	
 	abstract public String type();
 	abstract public Mesh load(String filename);
 	abstract public boolean save(String filename, Mesh mesh);
