@@ -20,6 +20,11 @@ public class MeshLoader_STP extends MeshLoader
 		return "stp";
 	}
 	
+	public boolean checkMagic(byte[] header)
+	{
+		return "ISO-10303".equals(new String(header, 0, 9));
+	}
+	
   /**
    * Load a STEP file.
    *  @param filename the file to load
