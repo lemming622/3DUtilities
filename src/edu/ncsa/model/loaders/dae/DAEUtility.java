@@ -1,6 +1,6 @@
 package edu.ncsa.model.loaders.dae;
 import edu.ncsa.model.MeshAuxiliary.*;
-import edu.ncsa.utility.*;
+import kgm.utility.*;
 import java.util.*;
 import org.jdom.*;
 
