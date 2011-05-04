@@ -1,10 +1,10 @@
 package edu.ncsa.model.signatures;
 import edu.ncsa.model.*;
 import edu.ncsa.model.MeshAuxiliary.*;
-import edu.ncsa.image.*;
-import edu.ncsa.matrix.*;
-import edu.ncsa.ml.*;
-import edu.ncsa.utility.*;
+import kgm.image.*;
+import kgm.matrix.*;
+import kgm.ml.*;
+import kgm.utility.*;
 import java.util.*;
 
 /**

@@ -2,7 +2,7 @@ package edu.ncsa.model.loaders;
 import edu.ncsa.model.*;
 import edu.ncsa.model.MeshAuxiliary.*;
 import edu.ncsa.model.loaders.teeve.*;
-import edu.ncsa.utility.*;
+import kgm.utility.*;
 import java.io.*;
 import java.nio.*;
 import java.nio.channels.*;

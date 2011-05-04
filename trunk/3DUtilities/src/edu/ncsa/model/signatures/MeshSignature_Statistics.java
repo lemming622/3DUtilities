@@ -1,7 +1,7 @@
 package edu.ncsa.model.signatures;
 import edu.ncsa.model.*;
 import edu.ncsa.model.MeshAuxiliary.*;
-import edu.ncsa.utility.*;
+import kgm.utility.*;
 import java.util.*;
 
 /**

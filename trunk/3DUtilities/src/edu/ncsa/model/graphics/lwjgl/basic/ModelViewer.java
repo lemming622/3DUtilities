@@ -4,7 +4,7 @@ import edu.ncsa.model.MeshAuxiliary.*;
 import edu.ncsa.model.MeshAuxiliary.Point;
 import edu.ncsa.model.MeshLoader.ProgressEvent;
 import edu.ncsa.model.graphics.*;
-import edu.ncsa.utility.*;
+import kgm.utility.*;
 import javax.swing.*;
 import javax.swing.Timer;
 import java.awt.*;

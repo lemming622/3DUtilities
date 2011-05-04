@@ -1,8 +1,8 @@
 package edu.ncsa.model.loaders.vh;
 import edu.ncsa.model.MeshAuxiliary.*;
-import edu.ncsa.image.*;
-import edu.ncsa.matrix.*;
-import edu.ncsa.utility.*;
+import kgm.image.*;
+import kgm.matrix.*;
+import kgm.utility.*;
 import java.util.*;
 
 /**

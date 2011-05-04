@@ -1,5 +1,5 @@
 package edu.ncsa.model;
-import edu.ncsa.matrix.*;
+import kgm.matrix.*;
 import java.io.*;
 import java.util.*;
 

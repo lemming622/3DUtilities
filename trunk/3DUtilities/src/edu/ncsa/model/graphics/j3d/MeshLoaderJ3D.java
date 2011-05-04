@@ -1,7 +1,7 @@
 package edu.ncsa.model.graphics.j3d;
 import edu.ncsa.model.*;
 import edu.ncsa.model.MeshAuxiliary.*;
-import edu.ncsa.matrix.*;
+import kgm.matrix.*;
 import java.util.*;
 import javax.vecmath.*;
 import javax.media.j3d.*;

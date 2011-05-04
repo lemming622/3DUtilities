@@ -1,8 +1,8 @@
 package edu.ncsa.model;
 import edu.ncsa.model.graphics.jogl.*;
-import edu.ncsa.utility.*;
-import edu.ncsa.image.*;
-import edu.ncsa.matrix.*;
+import kgm.utility.*;
+import kgm.image.*;
+import kgm.matrix.*;
 import java.awt.image.*;
 import java.io.*;
 import java.nio.*;

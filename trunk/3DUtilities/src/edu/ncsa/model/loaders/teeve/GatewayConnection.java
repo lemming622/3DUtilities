@@ -1,6 +1,6 @@
 package edu.ncsa.model.loaders.teeve;
 import edu.ncsa.model.loaders.teeve.GatewayAuxiliary.*;
-import edu.ncsa.utility.*;
+import kgm.utility.*;
 import java.io.*;
 import java.net.*;
 
