@@ -114,8 +114,8 @@
 		<echo file="${tmp_zip}/ModelConvert.bat">java -cp "%~dp03DUtilities.jar;%~dp0lib/ncsa/3DUtilities_Loaders.jar;%~dp0lib/jogl-1.1.1/jogl.jar;%~dp0lib/jogl-1.1.1/gluegen-rt.jar;%~dp0lib/jdom-1.1/jdom.jar;%~dp0lib/jama-1.0.2/Jama-1.0.2.jar;%~dp0lib/j3d/xj3D-1.0/xj3d-all.jar;%~dp0lib/j3d/j3d-1.5.2/j3dcore.jar;%~dp0lib/j3d/j3d-1.5.2/j3dutils.jar;%~dp0lib/ncsa/portfolio/portfolio.jar" -Xmx1g edu.ncsa.model.ModelConverter %1 %2</echo>
 		<echo file="${tmp_zip}/ModelConvert.sh">java -cp 3DUtilities.jar:lib/ncsa/3DUtilities_Loaders.jar:lib/jogl-1.1.1/jogl.jar:lib/jogl-1.1.1/gluegen-rt.jar:lib/jdom-1.1/jdom.jar:lib/jama-1.0.2/Jama-1.0.2.jar:lib/j3d/xj3D-1.0/xj3d-all.jar:lib/j3d/j3d-1.5.2/j3dcore.jar:lib/j3d/j3d-1.5.2/j3dutils.jar:lib/ncsa/portfolio/portfolio.jar -Xmx1g edu.ncsa.model.ModelConverter $1 $2</echo>
 
-		<echo file="${tmp_zip}/AutoUpdate.bat">java -cp "%~dp0lib/kgm/Utilities.jar" edu.ncsa.utility.AutoUpdate</echo>
-		<echo file="${tmp_zip}/AutoUpdate.sh">java -cp lib/kgm/Utilities.jar edu.ncsa.utility.AutoUpdate</echo>
+		<echo file="${tmp_zip}/AutoUpdate.bat">java -cp "%~dp0lib/kgm/Utilities.jar" kgm.utility.AutoUpdate</echo>
+		<echo file="${tmp_zip}/AutoUpdate.sh">java -cp lib/kgm/Utilities.jar kgm.utility.AutoUpdate</echo>
 		<echo file="${tmp_zip}/AutoUpdate.ini" append="false">!ini, txt${line.separator}</echo>
 		<echo file="${tmp_zip}/AutoUpdate.ini" append="true">http://isda.ncsa.uiuc.edu/~kmchenry/tmp/3DUtilities.zip</echo>
 		
