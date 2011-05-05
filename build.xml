@@ -47,9 +47,9 @@
 				<include name="**/MeshLoader_OBJ.class"/>
 			</fileset>
 		</copy>
-		<unjar src="lib/ncsa/ImageUtilities.jar" dest="${tmp_lite}"/>
-		<unjar src="lib/ncsa/MatrixUtilities.jar" dest="${tmp_lite}"/>
-		<unjar src="lib/ncsa/Utilities.jar" dest="${tmp_lite}"/>
+		<unjar src="lib/kgm/ImageUtilities.jar" dest="${tmp_lite}"/>
+		<unjar src="lib/kgm/MatrixUtilities.jar" dest="${tmp_lite}"/>
+		<unjar src="lib/kgm/Utilities.jar" dest="${tmp_lite}"/>
 		<unjar src="lib/jogl-1.1.1a/jogl.jar" dest="${tmp_lite}"/>
 		<unjar src="lib/jogl-1.1.1a/gluegen-rt.jar" dest="${tmp_lite}"/>
 		<jar basedir="${tmp_lite}" destfile="build/ModelViewer_Lite.jar"/>
@@ -101,8 +101,8 @@
 		<echo file="${tmp_zip}/ModelViewer.ini" append="true">Shaded=true${line.separator}</echo>
 		<echo file="${tmp_zip}/ModelViewer.ini" append="true">AutoRefresh=false${line.separator}</echo>
 		
-		<echo file="${tmp_zip}/ModelBrowser.bat">java -cp "%~dp03DUtilities.jar;%~dp0lib/ncsa/3DUtilities_Loaders.jar;%~dp0lib/ncsa/ImageUtilities.jar;%~dp0lib/ncsa/MatrixUtilities.jar;%~dp0lib/ncsa/Utilities.jar;%~dp0lib/jogl-1.1.1a/jogl.jar;%~dp0lib/jogl-1.1.1a/gluegen-rt.jar;%~dp0lib/jdom-1.1/jdom.jar;%~dp0lib/jama-1.0.2/Jama-1.0.2.jar;%~dp0lib/j3d/xj3D-1.0/xj3d-all.jar;%~dp0lib/j3d/j3d-1.5.2/j3dcore.jar;%~dp0lib/j3d/j3d-1.5.2/j3dutils.jar;%~dp0lib/ncsa/portfolio/portfolio.jar" -Djava.library.path="%~dp0lib/jogl-1.1.1a/windows-i586;%~dp0lib/loaders/j3d-1.5.2" -Xmx1g edu.ncsa.model.ModelBrowser</echo>
-		<echo file="${tmp_zip}/ModelBrowser.sh">java -cp 3DUtilities.jar:lib/ncsa/3DUtilities_Loaders.jar:lib/ncsa/ImageUtilities.jar:lib/ncsa/MatrixUtilities.jar:lib/ncsa/Utilities.jar:lib/jogl-1.1.1a/jogl.jar:lib/jogl-1.1.1a/gluegen-rt.jar:lib/jdom-1.1/jdom.jar:lib/jama-1.0.2/Jama-1.0.2.jar:lib/j3d/j3d-1.5.2/vecmath.jar:lib/misc/NonlinearOptimization.jar:lib/j3d/xj3D-1.0/xj3d-all.jar:lib/j3d/j3d-1.5.2/j3dcore.jar:lib/j3d/j3d-1.5.2/j3dutils.jar:lib/ncsa/portfolio/portfolio.jar -Djava.library.path=lib/jogl-1.1.1a/linux-i586:lib/loaders/j3d-1.5.2 -Xmx1g edu.ncsa.model.ModelBrowser</echo>
+		<echo file="${tmp_zip}/ModelBrowser.bat">java -cp "%~dp03DUtilities.jar;%~dp0lib/ncsa/3DUtilities_Loaders.jar;%~dp0lib/kgm/ImageUtilities.jar;%~dp0lib/kgm/MatrixUtilities.jar;%~dp0lib/kgm/Utilities.jar;%~dp0lib/jogl-1.1.1a/jogl.jar;%~dp0lib/jogl-1.1.1a/gluegen-rt.jar;%~dp0lib/jdom-1.1/jdom.jar;%~dp0lib/jama-1.0.2/Jama-1.0.2.jar;%~dp0lib/j3d/xj3D-1.0/xj3d-all.jar;%~dp0lib/j3d/j3d-1.5.2/j3dcore.jar;%~dp0lib/j3d/j3d-1.5.2/j3dutils.jar;%~dp0lib/ncsa/portfolio/portfolio.jar" -Djava.library.path="%~dp0lib/jogl-1.1.1a/windows-i586;%~dp0lib/loaders/j3d-1.5.2" -Xmx1g edu.ncsa.model.ModelBrowser</echo>
+		<echo file="${tmp_zip}/ModelBrowser.sh">java -cp 3DUtilities.jar:lib/ncsa/3DUtilities_Loaders.jar:lib/kgm/ImageUtilities.jar:lib/kgm/MatrixUtilities.jar:lib/kgm/Utilities.jar:lib/jogl-1.1.1a/jogl.jar:lib/jogl-1.1.1a/gluegen-rt.jar:lib/jdom-1.1/jdom.jar:lib/jama-1.0.2/Jama-1.0.2.jar:lib/j3d/j3d-1.5.2/vecmath.jar:lib/misc/NonlinearOptimization.jar:lib/j3d/xj3D-1.0/xj3d-all.jar:lib/j3d/j3d-1.5.2/j3dcore.jar:lib/j3d/j3d-1.5.2/j3dutils.jar:lib/ncsa/portfolio/portfolio.jar -Djava.library.path=lib/jogl-1.1.1a/linux-i586:lib/loaders/j3d-1.5.2 -Xmx1g edu.ncsa.model.ModelBrowser</echo>
 		<echo file="${tmp_zip}/ModelBrowser.ini" append="false">LoadPath=data/Models${line.separator}</echo>
 		<echo file="${tmp_zip}/ModelBrowser.ini" append="true">MetaDataPath=data/MetaData${line.separator}</echo>
 		<echo file="${tmp_zip}/ModelBrowser.ini" append="true">Polyglot=http://teeve3.ncsa.uiuc.edu${line.separator}</echo>
@@ -114,8 +114,8 @@
 		<echo file="${tmp_zip}/ModelConvert.bat">java -cp "%~dp03DUtilities.jar;%~dp0lib/ncsa/3DUtilities_Loaders.jar;%~dp0lib/jogl-1.1.1/jogl.jar;%~dp0lib/jogl-1.1.1/gluegen-rt.jar;%~dp0lib/jdom-1.1/jdom.jar;%~dp0lib/jama-1.0.2/Jama-1.0.2.jar;%~dp0lib/j3d/xj3D-1.0/xj3d-all.jar;%~dp0lib/j3d/j3d-1.5.2/j3dcore.jar;%~dp0lib/j3d/j3d-1.5.2/j3dutils.jar;%~dp0lib/ncsa/portfolio/portfolio.jar" -Xmx1g edu.ncsa.model.ModelConverter %1 %2</echo>
 		<echo file="${tmp_zip}/ModelConvert.sh">java -cp 3DUtilities.jar:lib/ncsa/3DUtilities_Loaders.jar:lib/jogl-1.1.1/jogl.jar:lib/jogl-1.1.1/gluegen-rt.jar:lib/jdom-1.1/jdom.jar:lib/jama-1.0.2/Jama-1.0.2.jar:lib/j3d/xj3D-1.0/xj3d-all.jar:lib/j3d/j3d-1.5.2/j3dcore.jar:lib/j3d/j3d-1.5.2/j3dutils.jar:lib/ncsa/portfolio/portfolio.jar -Xmx1g edu.ncsa.model.ModelConverter $1 $2</echo>
 
-		<echo file="${tmp_zip}/AutoUpdate.bat">java -cp "%~dp0lib/ncsa/Utilities.jar" edu.ncsa.utility.AutoUpdate</echo>
-		<echo file="${tmp_zip}/AutoUpdate.sh">java -cp lib/ncsa/Utilities.jar edu.ncsa.utility.AutoUpdate</echo>
+		<echo file="${tmp_zip}/AutoUpdate.bat">java -cp "%~dp0lib/kgm/Utilities.jar" edu.ncsa.utility.AutoUpdate</echo>
+		<echo file="${tmp_zip}/AutoUpdate.sh">java -cp lib/kgm/Utilities.jar edu.ncsa.utility.AutoUpdate</echo>
 		<echo file="${tmp_zip}/AutoUpdate.ini" append="false">!ini, txt${line.separator}</echo>
 		<echo file="${tmp_zip}/AutoUpdate.ini" append="true">http://isda.ncsa.uiuc.edu/~kmchenry/tmp/3DUtilities.zip</echo>
 		
