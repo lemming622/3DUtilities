@@ -216,15 +216,19 @@ public class MeshLoader_OBJ extends MeshLoader
 	        }else if(tokens[0].equals("mtllib")){	//Matierial library
 	        	mtllib = loadMaterialLibrary(Utility.getFilenamePath(filename) + tokens[1], mesh);
 	        }else if(tokens[0].equals("usemtl")){	//Material
-	        	material = mtllib.get(tokens[1]);
-	        	
-	        	if(ENABLE_MATERIAL_GROUPS){		//Create material groups
-		        	group = groups.get(material.name);
+	        	if (mtllib != null) {
+		        	material = mtllib.get(tokens[1]);
 		        	
-		        	if(group == null){
-		        		group = new Vector<Integer>(initial_capacity);
-		        		groups.put(material.name, group);
+		        	if(ENABLE_MATERIAL_GROUPS){		//Create material groups
+			        	group = groups.get(material.name);
+			        	
+			        	if(group == null){
+			        		group = new Vector<Integer>(initial_capacity);
+			        		groups.put(material.name, group);
+			        	}
 		        	}
+	        	} else {
+	        		System.out.println("No material file loaded for material " + tokens[1]);
 	        	}
 	        }else if(tokens[0].charAt(0) == '#'){
 	        }else{
