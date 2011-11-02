@@ -35,6 +35,9 @@ public class MeshLoader_OBJ extends MeshLoader
   {
     TreeMap<String,Material> mtllib = new TreeMap<String,Material>();
   	InputStream is = Utility.getInputStream(filename);
+  	if (is == null) {
+  		return mtllib;
+  	}
     BufferedReader ins = new BufferedReader(new InputStreamReader(is));
     String line;
     String[] tokens;
