@@ -59,7 +59,6 @@
 	<classpathentry kind="lib" path="lib/j3d/xj3d-1.0/xj3d-xml.jar"/>
 	<classpathentry kind="lib" path="lib/misc/NonlinearOptimization.jar"/>
 	<classpathentry kind="lib" path="lib/misc/jzlib.jar"/>
-	<classpathentry kind="lib" path="lib/ncsa/3DUtilities_Loaders.jar"/>
 	<classpathentry kind="lib" path="lib/lwjgl-2.4.2/jar/AppleJavaExtensions.jar"/>
 	<classpathentry kind="lib" path="lib/lwjgl-2.4.2/jar/jinput.jar"/>
 	<classpathentry kind="lib" path="lib/lwjgl-2.4.2/jar/lwjgl_test.jar"/>
